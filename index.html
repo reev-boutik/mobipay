@@ -379,12 +379,19 @@ function selectSvc(svc,btn){
 
 function openConfirm(){
   if(!deviceConnected){addLog('warn','⚠️ Aucun Samsung connecté. Configurez l\'IP et cliquez Connecter.');return;}
-  const phone=document.getElementById('phone').value.trim();
-  if(!phone){addLog('warn','⚠️ Entrez un numéro de téléphone.');return;}
-  const opName={orange:'Orange Money',moov:'Moov Money',wave:'Wave'}[selectedOp];
-  const svcName={credit:'Crédit Appel',send:'Envoi Mobile Money',receive:'Réception'}[selectedSvc];
-  document.getElementById('m-title').textContent=svcName;
-  document.getElementById('m-sub').textContent=`${opName} · ${phone}`;
+  if(selectedSvc==='custom'){
+    const code=document.getElementById('custom-ussd').value.trim();
+    if(!code){addLog('warn','⚠️ Entrez un code USSD.');return;}
+    document.getElementById('m-title').textContent='USSD Personnalisé';
+    document.getElementById('m-sub').textContent='Envoi du code brut au dialer';
+  } else {
+    const phone=document.getElementById('phone').value.trim();
+    if(!phone){addLog('warn','⚠️ Entrez un numéro de téléphone.');return;}
+    const opName={orange:'Orange Money',moov:'Moov Money',wave:'Wave'}[selectedOp];
+    const svcName={credit:'Crédit Appel',send:'Envoi Mobile Money',receive:'Réception'}[selectedSvc];
+    document.getElementById('m-title').textContent=svcName;
+    document.getElementById('m-sub').textContent=`${opName} · ${phone}`;
+  }
   document.getElementById('m-ussd').textContent=buildUSSD();
   document.getElementById('m-device').textContent=
     `📱 ${deviceModel} · SIM ${parseInt(document.getElementById('sim-sel').value)+1}`;
@@ -396,8 +403,14 @@ async function executeUSSD(){
   closeModal();
   const ussd=buildUSSD();
   const sim=parseInt(document.getElementById('sim-sel').value);
-  const opName={orange:'Orange Money',moov:'Moov Money',wave:'Wave'}[selectedOp];
-  const svcName={credit:'Crédit Appel',send:'Envoi',receive:'Réception'}[selectedSvc];
+  let label;
+  if(selectedSvc==='custom'){
+    label='USSD libre';
+  } else {
+    const opName={orange:'Orange Money',moov:'Moov Money',wave:'Wave'}[selectedOp];
+    const svcName={credit:'Crédit Appel',send:'Envoi',receive:'Réception'}[selectedSvc];
+    label=`${opName} · ${svcName}`;
+  }
   const btn=document.getElementById('launch-btn');
   btn.disabled=true;
   btn.innerHTML='<span class="spin">⏳</span> Envoi au Samsung…';
@@ -411,7 +424,7 @@ async function executeUSSD(){
     });
     const d=await r.json();
     if(d.status==='dispatched'){
-      addLog('success',`✅ USSD envoyé ! ${opName} · ${svcName}`);
+      addLog('success',`✅ USSD envoyé ! ${label}`);
       addLog('info','🔔 Regardez l\'écran du Samsung et confirmez la transaction.');
     } else {
       addLog('error',`❌ Erreur appareil : ${d.error||JSON.stringify(d)}`);
