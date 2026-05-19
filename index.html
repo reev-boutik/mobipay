@@ -413,21 +413,28 @@ async function executeUSSD(){
   }
   const btn=document.getElementById('launch-btn');
   btn.disabled=true;
-  btn.innerHTML='<span class="spin">⏳</span> Envoi au Samsung…';
-  addLog('info',`📡 Envoi USSD <strong>${ussd}</strong> → Samsung SIM ${sim+1}…`);
+  btn.innerHTML='<span class="spin">⏳</span> Envoi au modem…';
+  addLog('info',`📡 Envoi USSD silencieux <strong>${ussd}</strong> → SIM ${sim+1}…`);
   try{
-    const r=await fetch(`${getBase()}/ussd`,{
+    // /ussd-silent : sendUssdRequest, pas de dialer, pas de confirmation
+    // Le serveur attend la réponse du modem avant de renvoyer (timeout 30s).
+    const r=await fetch(`${getBase()}/ussd-silent`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({code:ussd,sim}),
-      signal:AbortSignal.timeout(7000),
+      body:JSON.stringify({code:ussd,sim,timeout:30}),
+      signal:AbortSignal.timeout(35000),
     });
     const d=await r.json();
-    if(d.status==='dispatched'){
-      addLog('success',`✅ USSD envoyé ! ${label}`);
-      addLog('info','🔔 Regardez l\'écran du Samsung et confirmez la transaction.');
+    if(d.status==='ok'){
+      addLog('success',`✅ ${label} — réponse opérateur :`);
+      // Affichage en bloc préformaté pour préserver les retours à la ligne
+      addLog('info',`<pre style="white-space:pre-wrap;margin:0;font-family:'Space Mono',monospace;font-size:12px;color:#00e676;">${escapeHtml(d.response||'(vide)')}</pre>`);
+    } else if(d.status==='failure'){
+      addLog('error',`❌ ${label} — opérateur a rejeté : ${d.reason||d.failureCode}`);
+    } else if(d.status==='timeout'){
+      addLog('warn',`⏱ ${label} — pas de réponse modem dans les 30s. Session USSD interactive ? Essayez le mode dialer.`);
     } else {
-      addLog('error',`❌ Erreur appareil : ${d.error||JSON.stringify(d)}`);
+      addLog('error',`❌ Erreur : ${d.error||JSON.stringify(d)}`);
     }
   } catch(e){
     if(e.name==='TimeoutError') addLog('error','❌ Délai dépassé. Le Samsung est-il en ligne ?');
@@ -437,6 +444,12 @@ async function executeUSSD(){
   }
   btn.disabled=false;
   btn.innerHTML='<span>⚡</span> Lancer la Transaction';
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
 }
 
 function addLog(type,msg){
