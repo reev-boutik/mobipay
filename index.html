@@ -216,6 +216,9 @@
     <button class="svc-btn" onclick="selectSvc('receive',this)">
       <span class="si">📥</span>Recevoir
     </button>
+    <button class="svc-btn" onclick="selectSvc('custom',this)">
+      <span class="si">✏️</span>Personnalisé
+    </button>
   </div>
 
   <div class="field">
@@ -229,6 +232,10 @@
   <div class="field" id="recipient-field" style="display:none;">
     <label>NUMÉRO DESTINATAIRE</label>
     <input type="tel" id="recipient" placeholder="+225 05 00 00 00 00" oninput="updateUSSD()" />
+  </div>
+  <div class="field" id="custom-field" style="display:none;">
+    <label>CODE USSD PERSONNALISÉ</label>
+    <input type="text" id="custom-ussd" placeholder="*124#" value="*124#" oninput="updateUSSD()" autocomplete="off" />
   </div>
 
   <div class="ussd-preview">
@@ -306,6 +313,9 @@ const USSD = {
 
 function getBase(){ return `http://${document.getElementById('ip-input').value.trim()}:8765`; }
 function buildUSSD(){
+  if(selectedSvc==='custom'){
+    return document.getElementById('custom-ussd').value.trim() || '*124#';
+  }
   const p=document.getElementById('phone').value;
   const a=document.getElementById('amount').value;
   const r=document.getElementById('recipient').value;
@@ -350,10 +360,20 @@ function selectSvc(svc,btn){
   btn.classList.add('active'); selectedSvc=svc;
   const af=document.getElementById('amount-field');
   const rf=document.getElementById('recipient-field');
+  const cf=document.getElementById('custom-field');
+  const pf=document.getElementById('phone').parentElement;
   const al=document.getElementById('amount-label');
-  if(svc==='credit'){af.style.display='block';al.textContent='MONTANT DU CRÉDIT (FCFA)';rf.style.display='none';}
-  else if(svc==='send'){af.style.display='block';al.textContent='MONTANT À ENVOYER (FCFA)';rf.style.display='block';}
-  else{af.style.display='none';rf.style.display='none';}
+  if(svc==='credit'){
+    pf.style.display='block';af.style.display='block';al.textContent='MONTANT DU CRÉDIT (FCFA)';
+    rf.style.display='none';cf.style.display='none';
+  } else if(svc==='send'){
+    pf.style.display='block';af.style.display='block';al.textContent='MONTANT À ENVOYER (FCFA)';
+    rf.style.display='block';cf.style.display='none';
+  } else if(svc==='receive'){
+    pf.style.display='block';af.style.display='none';rf.style.display='none';cf.style.display='none';
+  } else if(svc==='custom'){
+    pf.style.display='none';af.style.display='none';rf.style.display='none';cf.style.display='block';
+  }
   updateUSSD();
 }
 
