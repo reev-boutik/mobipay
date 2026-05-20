@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MobiPay — USSD Mobile Money</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
   :root {
@@ -26,7 +26,7 @@
   header{width:100%;max-width:620px;padding:32px 0 18px;display:flex;align-items:center;gap:14px;}
   .logo-icon{width:56px;height:56px;background:var(--orange);border-radius:14px;
     display:flex;align-items:center;justify-content:center;
-    font-family:'Space Mono',monospace;font-weight:700;font-size:20px;color:#fff;
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;color:#fff;
     box-shadow:0 0 24px rgba(255,107,0,0.4);flex-shrink:0;}
   .logo-text{font-size:30px;font-weight:800;letter-spacing:-0.5px;}
   .logo-text span{color:var(--orange);}
@@ -49,7 +49,7 @@
   .fleet-phone-dot.online {background:var(--green);box-shadow:0 0 6px rgba(0,230,118,.5);}
   .fleet-phone-dot.offline{background:var(--red);}
   .fleet-phone-name{font-weight:700;font-size:15px;color:var(--text);}
-  .fleet-phone-ip{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;}
+  .fleet-phone-ip{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;}
   .fleet-phone-sims{display:flex;flex-direction:column;gap:3px;font-size:12px;}
   .fleet-phone-sim{display:flex;justify-content:space-between;color:var(--muted);}
   .fleet-phone-sim .sim-label{font-weight:600;color:var(--text);}
@@ -59,9 +59,9 @@
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
   .device-info{flex:1;}
   .strip-label{font-size:13px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-weight:600;}
-  .device-name{font-size:16px;font-weight:700;color:var(--text);margin-top:3px;font-family:'Space Mono',monospace;}
+  .device-name{font-size:16px;font-weight:700;color:var(--text);margin-top:3px;font-family:'JetBrains Mono',monospace;}
   .ip-input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
-    padding:11px 14px;font-family:'Space Mono',monospace;font-size:16px;color:var(--blue);
+    padding:11px 14px;font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--blue);
     outline:none;transition:border-color .2s;}
   .ip-input:focus{border-color:var(--orange);}
   .btn-sm{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
@@ -70,7 +70,7 @@
   .btn-sm:hover{border-color:var(--orange);color:var(--orange);}
   .btn-sm:disabled{opacity:.5;cursor:not-allowed;}
   .sim-sel{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
-    padding:11px 14px;font-family:'Space Mono',monospace;font-size:14px;color:var(--text);outline:none;cursor:pointer;}
+    padding:11px 14px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);outline:none;cursor:pointer;}
 
   .card{width:100%;max-width:620px;background:var(--card);border:1px solid var(--border);
     border-radius:20px;padding:24px 22px;margin-bottom:12px;position:relative;overflow:hidden;}
@@ -110,15 +110,15 @@
 
   .field{margin-bottom:18px;}
   .field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.8px;text-transform:uppercase;}
-  .field input, .field select{width:100%;background:var(--surface);border:2px solid var(--border);
-    border-radius:10px;padding:14px 16px;font-family:'Space Mono',monospace;font-size:18px;font-weight:600;
-    color:var(--text);outline:none;transition:border-color .2s;letter-spacing:.3px;}
-  .field select{font-family:'Syne',sans-serif;cursor:pointer;font-size:16px;}
+  .field input, .field select{width:100%;background:#1a1f2c !important;border:2px solid var(--border);
+    border-radius:10px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:22px !important;font-weight:700 !important;
+    color:#ffffff !important;outline:none;transition:border-color .2s;letter-spacing:1px;line-height:1.3;}
+  .field select{font-family:'Syne',sans-serif;cursor:pointer;font-size:18px !important;}
   .field input:focus, .field select:focus{border-color:var(--orange);}
-  .field input::placeholder{color:var(--muted);font-size:16px;font-weight:400;}
+  .field input::placeholder{color:#6b7280 !important;font-size:18px !important;font-weight:400 !important;letter-spacing:.5px;}
 
   .ussd-preview{background:#0d1117;border:1.5px solid var(--border);border-radius:10px;
-    padding:14px 18px;margin-bottom:20px;font-family:'Space Mono',monospace;font-size:17px;font-weight:700;
+    padding:14px 18px;margin-bottom:20px;font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;
     color:var(--green);display:flex;align-items:center;gap:12px;min-height:52px;letter-spacing:.5px;}
   .ussd-label{color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:600;}
   .cursor{display:inline-block;width:2px;height:17px;background:var(--green);
@@ -140,11 +140,11 @@
     letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
   .dot{width:10px;height:10px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite;}
   .log-body{padding:16px 28px;min-height:120px;max-height:300px;overflow-y:auto;}
-  .log-empty{color:var(--muted);font-size:16px;font-family:'Space Mono',monospace;text-align:center;padding:30px 0;opacity:.6;}
+  .log-empty{color:var(--muted);font-size:16px;font-family:'JetBrains Mono',monospace;text-align:center;padding:30px 0;opacity:.6;}
   .log-entry{display:flex;gap:14px;align-items:flex-start;padding:10px 0;
     border-bottom:1px solid rgba(255,255,255,.04);animation:fadeIn .3s ease;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
-  .log-time{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;padding-top:2px;font-weight:600;}
+  .log-time{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;padding-top:2px;font-weight:600;}
   .log-msg{font-size:16px;line-height:1.5;}
   .log-entry.success .log-msg{color:var(--green);} .log-entry.error .log-msg{color:var(--red);}
   .log-entry.info .log-msg{color:var(--blue);} .log-entry.warn .log-msg{color:var(--orange);}
@@ -159,9 +159,9 @@
   .modal-icon{font-size:60px;margin-bottom:16px;}
   .modal-title{font-size:26px;font-weight:800;margin-bottom:10px;}
   .modal-sub{font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:22px;}
-  .modal-ussd{background:#0d1117;border-radius:12px;padding:16px;font-family:'Space Mono',monospace;
+  .modal-ussd{background:#0d1117;border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;
     font-size:20px;font-weight:700;color:var(--green);margin-bottom:16px;letter-spacing:1px;word-break:break-all;}
-  .modal-device{font-size:14px;color:var(--blue);margin-bottom:22px;font-family:'Space Mono',monospace;}
+  .modal-device{font-size:14px;color:var(--blue);margin-bottom:22px;font-family:'JetBrains Mono',monospace;}
   .modal-actions{display:flex;gap:12px;flex-wrap:wrap;}
   .btn-confirm{flex:1;padding:16px;border-radius:12px;background:var(--green);color:#0a0c10;
     border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;transition:opacity .2s;min-width:110px;}
@@ -182,7 +182,7 @@
   .plans-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;text-align:left;}
   .plan-row{display:flex;gap:8px;align-items:stretch;}
   .plan-row input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
-    padding:11px 13px;font-family:'Space Mono',monospace;font-size:14px;color:var(--text);outline:none;}
+    padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);outline:none;}
   .plan-row input:focus{border-color:var(--orange);}
   .plan-row input.plan-label{flex:1.4;font-family:'Syne',sans-serif;}
   .plan-row input.plan-amount{flex:.7;}
@@ -192,7 +192,7 @@
   .wave-qr-container{background:#fff;padding:24px;border-radius:16px;display:inline-block;margin:0 auto;}
   .wave-qr-container canvas, .wave-qr-container img{display:block;max-width:100%;height:auto;}
   .wave-amount-display{font-size:38px;font-weight:800;color:var(--orange);margin:18px 0 6px;
-    font-family:'Space Mono',monospace;}
+    font-family:'JetBrains Mono',monospace;}
   .wave-instructions{font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
 
   /* PHONE CONFIG (settings → Téléphones) */
@@ -201,14 +201,14 @@
   .phone-config-head input.phone-name{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:8px;
     padding:9px 12px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;}
   .phone-config-head input.phone-ip{flex:1.1;background:var(--card);border:1.5px solid var(--border);border-radius:8px;
-    padding:9px 12px;font-family:'Space Mono',monospace;font-size:13px;color:var(--blue);outline:none;}
+    padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--blue);outline:none;}
   .phone-config-head .phone-dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex-shrink:0;}
   .phone-config-head .phone-dot.online {background:var(--green);}
   .phone-config-head .phone-dot.offline{background:var(--red);}
   .phone-config-head .del-btn{background:transparent;border:1.5px solid var(--border);border-radius:8px;
     padding:0 12px;color:var(--red);cursor:pointer;font-size:14px;height:36px;}
   .phone-sim-row{display:flex;gap:8px;align-items:center;margin-top:6px;font-size:13px;}
-  .phone-sim-row .sim-tag{min-width:54px;font-weight:700;color:var(--orange);font-family:'Space Mono',monospace;}
+  .phone-sim-row .sim-tag{min-width:54px;font-weight:700;color:var(--orange);font-family:'JetBrains Mono',monospace;}
   .phone-sim-row select{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:8px;
     padding:8px 10px;font-family:'Syne',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;}
 </style>
@@ -284,10 +284,17 @@
     <input type="number" id="plan-amount" inputmode="numeric" placeholder="500" oninput="updateUSSD()" />
   </div>
 
-  <div class="ussd-preview" id="ussd-preview-box">
-    <span class="ussd-label">USSD</span>
-    <span id="ussd-display" style="flex:1;">—</span>
-    <span class="cursor"></span>
+  <div class="field" style="margin-bottom:14px;">
+    <label>CODE USSD (auto, éditable pour test)</label>
+    <div style="display:flex;gap:8px;align-items:stretch;">
+      <input type="text" id="ussd-input" autocomplete="off" oninput="onUssdManualEdit()"
+        style="flex:1;font-family:'JetBrains Mono',monospace;font-size:18px !important;color:var(--green) !important;background:#0d1117 !important;letter-spacing:1px;font-weight:700 !important;" placeholder="—" />
+      <button class="btn-sm" onclick="regenUSSD()" title="Régénérer le code automatique" style="padding:0 14px;background:var(--surface);">↻</button>
+      <button class="btn-sm" onclick="testRawUSSD()" title="Envoyer ce code USSD directement au téléphone sélectionné" style="padding:0 14px;background:#1f3a5f;">🧪 Tester</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.3px;line-height:1.4;">
+      Édité manuellement ? Le bouton ↻ recalcule depuis les champs. 🧪 Tester envoie ce code tel quel.
+    </div>
   </div>
 
   <button class="btn-launch" id="launch-btn" onclick="openConfirm()">
@@ -327,7 +334,7 @@
     <div class="wave-qr-container" id="wave-qr-container">
       <canvas id="wave-qr-canvas"></canvas>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:14px;font-family:'Space Mono',monospace;word-break:break-all;" id="wave-qr-data"></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:14px;font-family:'JetBrains Mono',monospace;word-break:break-all;" id="wave-qr-data"></div>
     <div class="modal-actions" style="margin-top:18px;">
       <button class="btn-cancel" onclick="closeWaveModal()">Fermer</button>
       <button class="btn-confirm" onclick="markWavePaid()">✓ Paiement reçu</button>
@@ -433,7 +440,7 @@
         <canvas id="install-qr-canvas"></canvas>
       </div>
 
-      <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);word-break:break-all;margin-bottom:18px;padding:10px;background:var(--surface);border-radius:8px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);word-break:break-all;margin-bottom:18px;padding:10px;background:var(--surface);border-radius:8px;">
         <span id="install-url">https://reev-boutik.github.io/mobipay/apk/mobipay-bridge.apk</span>
       </div>
 
@@ -537,6 +544,7 @@ function clearNetwork(){
 function setNetwork(net, overridden){
   selectedNet = net;
   networkOverride = !!overridden;
+  ussdManuallyEdited = false;
   const b = document.getElementById('net-badge');
   b.className = `net-badge net-${net} active` + (overridden ? ' overridden' : '');
   document.getElementById('net-logo').textContent = NET_INFO[net].code;
@@ -582,6 +590,7 @@ function refreshServicesAvailability(){
 // SERVICES
 function selectSvc(svc){
   selectedSvc = svc;
+  ussdManuallyEdited = false;  // changement de contexte → recalcul auto
   document.getElementById('svc-retrait').classList.toggle('active', svc === 'retrait');
   document.getElementById('svc-depot').classList.toggle('active',   svc === 'depot');
   document.getElementById('svc-credit').classList.toggle('active',  svc === 'credit');
@@ -725,17 +734,40 @@ function buildUSSD(masked){
   return null;
 }
 
+let ussdManuallyEdited = false;
+
+function onUssdManualEdit(){
+  ussdManuallyEdited = true;
+}
+
+function regenUSSD(){
+  ussdManuallyEdited = false;
+  updateUSSD();
+  addLog('info','↻ Code USSD régénéré depuis les champs.');
+}
+
 function updateUSSD(){
-  const display = document.getElementById('ussd-display');
+  const input = document.getElementById('ussd-input');
+  if(!input) return;
+  // Si l'utilisateur a édité manuellement, on n'écrase pas
+  if(ussdManuallyEdited) return;
   if(QR_NETWORKS.includes(selectedNet)){
     const amt = document.getElementById('amount').value;
     const label = selectedNet === 'wave' ? 'Wave' : 'Orange Pay';
-    display.textContent = amt ? `${label} QR · ${amt} FCFA` : `${label} QR · entrer un montant`;
-    display.style.color = selectedNet === 'wave' ? '#1a73e8' : '#ff6b00';
+    input.value = amt ? `${label} QR · ${amt} FCFA` : `${label} QR · entrer un montant`;
+    input.style.color = selectedNet === 'wave' ? '#1a73e8' : '#ff6b00';
     return;
   }
-  display.style.color = 'var(--green)';
-  display.textContent = buildUSSD(true) || '—';
+  input.style.color = 'var(--green)';
+  input.value = buildUSSD(true) || '';
+}
+
+// Récupère le code USSD à envoyer : version éditée si modifiée, sinon recalculée
+function getEffectiveUSSD(){
+  if(ussdManuallyEdited){
+    return document.getElementById('ussd-input').value.trim();
+  }
+  return buildUSSD(false);
 }
 
 // LAUNCH
@@ -778,7 +810,9 @@ function openConfirm(){
   const phone   = document.getElementById('phone').value;
   document.getElementById('m-title').textContent = svcName;
   document.getElementById('m-sub').textContent   = phone ? `${opName} · ${phone}` : opName;
-  document.getElementById('m-ussd').textContent  = ussd;
+  document.getElementById('m-ussd').textContent  = ussdManuallyEdited
+    ? document.getElementById('ussd-input').value.trim()
+    : ussd;
   document.getElementById('m-device').textContent = `📱 ${route.phone.name} (SIM ${route.simIdx+1}) · ${route.phone.ip}`;
   document.getElementById('modal').classList.add('show');
 }
@@ -787,15 +821,18 @@ function closeModal(){ document.getElementById('modal').classList.remove('show')
 
 async function executeUSSD(){
   closeModal();
-  const ussdReal   = buildUSSD(false);
-  const ussdMasked = buildUSSD(true);
+  const ussdReal   = getEffectiveUSSD();
+  const ussdMasked = ussdManuallyEdited ? ussdReal : (buildUSSD(true) || ussdReal);
   const route = findRoute(selectedNet, selectedSvc);
   if(!route){
-    addLog('error','❌ Téléphone disparu entre confirmation et envoi. Vérifiez la flotte.');
+    addLog('error','❌ Téléphone disparu entre confirmation et envoi.');
     return;
   }
-  const svcLabel = {retrait:'Retrait', depot:'Dépôt', credit:'Crédit'}[selectedSvc] || selectedSvc;
-  const label = `${NET_INFO[selectedNet].label} · ${svcLabel}`;
+  await sendUSSDToPhone(ussdReal, ussdMasked, route, `${NET_INFO[selectedNet].label} · ${labelSvc(serviceToSimUsage(selectedSvc))}`);
+}
+
+// Envoi générique d'un USSD à un téléphone donné
+async function sendUSSDToPhone(ussdReal, ussdMasked, route, label){
   const btn = document.getElementById('launch-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin">⏳</span> Envoi au modem…';
@@ -810,7 +847,7 @@ async function executeUSSD(){
     const d = await r.json();
     if(d.status === 'ok'){
       addLog('success', `✅ ${label} — réponse opérateur :`);
-      addLog('info', `<pre style="white-space:pre-wrap;margin:0;font-family:'Space Mono',monospace;font-size:13px;color:#00e676;">${escapeHtml(d.response||'(vide)')}</pre>`);
+      addLog('info', `<pre style="white-space:pre-wrap;margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:#00e676;">${escapeHtml(d.response||'(vide)')}</pre>`);
     } else if(d.status === 'failure'){
       addLog('error', `❌ ${label} — opérateur a rejeté : ${d.reason || d.failureCode}`);
     } else if(d.status === 'timeout'){
@@ -821,13 +858,40 @@ async function executeUSSD(){
   } catch(e){
     if(e.name === 'TimeoutError') addLog('error','❌ Délai dépassé. Téléphone éteint ?');
     else                          addLog('error',`❌ Erreur réseau : ${e.message}`);
-    // Marquer le téléphone offline et re-render
     const fleet = loadFleet();
     const p = fleet.find(x => x.id === route.phone.id);
     if(p){ p.online = false; saveFleet(fleet); renderFleetCard(); }
   }
   btn.disabled = false;
   btn.innerHTML = '<span>⚡</span> Lancer la Transaction';
+}
+
+// 🧪 Tester : envoie le contenu brut du champ USSD au téléphone qui devrait le servir
+async function testRawUSSD(){
+  const code = document.getElementById('ussd-input').value.trim();
+  if(!code){
+    addLog('warn','⚠️ Champ USSD vide.');
+    return;
+  }
+  // Routage : si réseau+service sélectionnés, trouve le téléphone ; sinon
+  // demande lequel utiliser
+  let route = null;
+  if(selectedNet && selectedSvc && !QR_NETWORKS.includes(selectedNet)){
+    route = findRoute(selectedNet, selectedSvc);
+  }
+  if(!route){
+    // Aucun réseau/service → propose le premier téléphone online
+    const fleet = loadFleet();
+    const onlinePhone = fleet.find(p => p.online);
+    if(!onlinePhone){
+      addLog('error','❌ Aucun téléphone en ligne pour le test.');
+      return;
+    }
+    // Tester sur SIM 1 par défaut
+    route = {phone: onlinePhone, simIdx: parseInt(document.getElementById('sim-sel')?.value || '0')};
+    addLog('warn',`⚠️ Test : envoi à ${onlinePhone.name} (SIM ${route.simIdx+1}) — pas de routage automatique.`);
+  }
+  await sendUSSDToPhone(code, code, route, '🧪 Test USSD');
 }
 
 // QR (Wave + Orange Pay)
