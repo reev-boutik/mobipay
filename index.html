@@ -232,6 +232,7 @@
     padding:0 12px;color:#fff;cursor:pointer;font-size:14px;height:36px;transition:all .15s;}
   .phone-sim-row .sim-identify-btn:hover{background:#2a4a75;border-color:var(--blue);}
   .phone-sim-row .sim-identify-btn:active{transform:scale(.95);}
+  .sim-identified{margin-left:64px;margin-top:-2px;margin-bottom:4px;font-size:12px;font-family:'JetBrains Mono',monospace;color:#00e676;font-weight:700;}
 </style>
 </head>
 <body>
@@ -1398,13 +1399,17 @@ function phoneConfigRow(p){
       const sel = (s.service === v || (!s.service && v === '')) ? 'selected' : '';
       return `<option value="${v}" ${sel}>${lbl}</option>`;
     }).join('');
+    const identifiedInfo = s.identifiedNumber || s.identifiedProfile
+      ? `<div class="sim-identified">${s.identifiedNumber ? `📞 ${escapeHtml(s.identifiedNumber)}` : ''}${s.identifiedProfile ? ` · <span style="color:var(--orange);">${escapeHtml(s.identifiedProfile)}</span>` : ''}</div>`
+      : '';
     return `
       <div class="phone-sim-row">
         <span class="sim-tag">SIM ${i+1}</span>
         <select onchange="updateSimField('${p.id}', ${i}, 'network', this.value)">${netOpts}</select>
         <select onchange="updateSimField('${p.id}', ${i}, 'service', this.value)">${usageOpts}</select>
         <button class="sim-identify-btn" onclick="identifySimNumber('${p.id}', ${i})" title="Identifier le numéro de cette SIM">📞</button>
-      </div>`;
+      </div>
+      ${identifiedInfo}`;
   }).join('');
   return `
     <div class="phone-config" data-id="${p.id}">
@@ -1429,6 +1434,32 @@ const IDENTIFY_USSD = {
   // Wave/Orange Pay : pas d'USSD direct, on ne propose pas
 };
 
+// Parse opérateur response → extract phone number + profile type
+function parseIdentifyResponse(text){
+  const result = {number:null, profile:null, suggested:null};
+  if(!text) return result;
+  // Numéro : cherche une séquence de 8+ chiffres (CI = 10 chiffres ou 13 avec 225)
+  const numMatch = text.match(/\b(\+?225)?(\d{10}|\d{13})\b/);
+  if(numMatch){
+    let num = numMatch[0].replace(/^225/, '').replace(/^\+225/, '');
+    // Si on a 13 chiffres dont 225 au début → enlever
+    if(num.length === 13 && num.startsWith('225')) num = num.slice(3);
+    result.number = num;
+  }
+  // Profil : "profil actuel est XXX" (Moov) ou autres patterns
+  const profMatch = text.match(/profil\s+actuel\s+est\s+([A-Za-z0-9_\- ]+?)(?:[.,]|\s+Merci|$)/i);
+  if(profMatch){
+    result.profile = profMatch[1].trim();
+  }
+  // Suggestion service basée sur le profil
+  if(result.profile){
+    const lower = result.profile.toLowerCase();
+    if(/cabine|airtime|recharge|credit/.test(lower))     result.suggested = 'credit';
+    else if(/retailer|marchand|money|caisse|agent/.test(lower)) result.suggested = 'money';
+  }
+  return result;
+}
+
 async function identifySimNumber(phoneId, simIdx){
   const fleet = loadFleet();
   const p = fleet.find(x => x.id === phoneId);
@@ -1439,7 +1470,6 @@ async function identifySimNumber(phoneId, simIdx){
   }
   const sim = (p.sims && p.sims[simIdx]) || {};
 
-  // Déterminer le code USSD à utiliser
   let code;
   let opLabel;
   if(sim.network && IDENTIFY_USSD[sim.network]){
@@ -1449,7 +1479,6 @@ async function identifySimNumber(phoneId, simIdx){
     addLog('warn',`⚠️ ${NET_INFO[sim.network].label} = QR seul, pas d'USSD pour identifier le numéro.`);
     return;
   } else {
-    // Opérateur non assigné → demander
     const choice = prompt(
       `SIM ${simIdx+1} de "${p.name}" n'a pas d'opérateur assigné.\n\n` +
       `Quel code USSD essayer ?\n` +
@@ -1474,8 +1503,26 @@ async function identifySimNumber(phoneId, simIdx){
     });
     const d = await r.json();
     if(d.status === 'ok'){
+      const parsed = parseIdentifyResponse(d.response || '');
+      // Sauvegarder dans la flotte
+      const fleet2 = loadFleet();
+      const p2 = fleet2.find(x => x.id === phoneId);
+      if(p2 && p2.sims && p2.sims[simIdx]){
+        p2.sims[simIdx].identifiedNumber  = parsed.number  || null;
+        p2.sims[simIdx].identifiedProfile = parsed.profile || null;
+        // Auto-suggest le service si non assigné encore
+        if(!p2.sims[simIdx].service && parsed.suggested){
+          p2.sims[simIdx].service = parsed.suggested;
+        }
+        saveFleet(fleet2);
+        renderPhonesConfig();
+        renderFleetCard();
+      }
       addLog('success', `✅ ${p.name} SIM ${simIdx+1} (${opLabel}) :`);
-      addLog('info', `<pre style="white-space:pre-wrap;margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:#00e676;font-weight:700;">${escapeHtml(d.response||'(vide)')}</pre>`);
+      if(parsed.number){
+        addLog('info', `📞 <strong style="color:#00e676;">${parsed.number}</strong>${parsed.profile ? ` · Profil : <strong style="color:var(--orange);">${parsed.profile}</strong>` : ''}${parsed.suggested ? ` → suggéré : <em>${labelSvc(parsed.suggested)}</em>` : ''}`);
+      }
+      addLog('info', `<pre style="white-space:pre-wrap;margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:#00e676;">${escapeHtml(d.response||'(vide)')}</pre>`);
     } else if(d.status === 'failure'){
       addLog('error', `❌ ${p.name} SIM ${simIdx+1} — opérateur rejette : ${d.reason || d.failureCode}. Essayez l'autre code USSD.`);
     } else if(d.status === 'timeout'){
