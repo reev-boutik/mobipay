@@ -228,6 +228,10 @@
   .phone-sim-row .sim-tag{min-width:54px;font-weight:700;color:var(--orange);font-family:'JetBrains Mono',monospace;}
   .phone-sim-row select{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:8px;
     padding:8px 10px;font-family:'Syne',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;}
+  .phone-sim-row .sim-identify-btn{background:#1f3a5f;border:1.5px solid #2a4a75;border-radius:8px;
+    padding:0 12px;color:#fff;cursor:pointer;font-size:14px;height:36px;transition:all .15s;}
+  .phone-sim-row .sim-identify-btn:hover{background:#2a4a75;border-color:var(--blue);}
+  .phone-sim-row .sim-identify-btn:active{transform:scale(.95);}
 </style>
 </head>
 <body>
@@ -371,6 +375,9 @@
     <div id="settings-phones-tab" style="display:none;">
       <div class="modal-sub" style="margin-bottom:14px;text-align:left;">
         Configurer les téléphones de la caisse et assigner chaque SIM à un rôle.
+      </div>
+      <div style="background:#1a2a3f;border-left:3px solid var(--blue);padding:10px 14px;border-radius:6px;margin-bottom:14px;text-align:left;font-size:13px;line-height:1.6;color:var(--text);">
+        💡 <strong>Identifier un numéro de SIM</strong> : cliquez le bouton 📞 à droite de chaque SIM pour lancer <code style="color:var(--blue);">*99#</code> (Orange/MTN) ou <code style="color:var(--blue);">*106#</code> (Moov). La réponse opérateur affichera le numéro.
       </div>
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         <button class="btn-sm" onclick="scanFleet()" id="scan-fleet-btn" style="background:#1f3a5f;">🔍 Scanner réseau</button>
@@ -1382,8 +1389,6 @@ function phoneConfigRow(p){
       const sel = (s.network === n || (!s.network && n === '')) ? 'selected' : '';
       return `<option value="${n}" ${sel}>${lbl}</option>`;
     }).join('');
-    // SIM usage = type de compte (pas une opération). Une SIM Money fait
-    // retrait + dépôt + transfert. Une SIM Crédit fait airtime + forfaits.
     const usageOpts = [
       ['',       '— Usage —'],
       ['money',  'Money (retrait/dépôt)'],
@@ -1398,6 +1403,7 @@ function phoneConfigRow(p){
         <span class="sim-tag">SIM ${i+1}</span>
         <select onchange="updateSimField('${p.id}', ${i}, 'network', this.value)">${netOpts}</select>
         <select onchange="updateSimField('${p.id}', ${i}, 'service', this.value)">${usageOpts}</select>
+        <button class="sim-identify-btn" onclick="identifySimNumber('${p.id}', ${i})" title="Identifier le numéro de cette SIM">📞</button>
       </div>`;
   }).join('');
   return `
@@ -1413,6 +1419,73 @@ function phoneConfigRow(p){
       <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escapeHtml(p.device || 'Modèle inconnu')}</div>
       ${sims}
     </div>`;
+}
+
+// USSD codes for self-identification (varient par opérateur CI)
+const IDENTIFY_USSD = {
+  orange:   '*99#',
+  mtn:      '*99#',
+  moov:     '*106#',
+  // Wave/Orange Pay : pas d'USSD direct, on ne propose pas
+};
+
+async function identifySimNumber(phoneId, simIdx){
+  const fleet = loadFleet();
+  const p = fleet.find(x => x.id === phoneId);
+  if(!p){ addLog('error','❌ Téléphone introuvable.'); return; }
+  if(!p.online){
+    addLog('error',`❌ "${p.name}" hors-ligne. Cliquez ↻ pour reconnecter.`);
+    return;
+  }
+  const sim = (p.sims && p.sims[simIdx]) || {};
+
+  // Déterminer le code USSD à utiliser
+  let code;
+  let opLabel;
+  if(sim.network && IDENTIFY_USSD[sim.network]){
+    code = IDENTIFY_USSD[sim.network];
+    opLabel = NET_INFO[sim.network].label;
+  } else if(sim.network && QR_NETWORKS.includes(sim.network)){
+    addLog('warn',`⚠️ ${NET_INFO[sim.network].label} = QR seul, pas d'USSD pour identifier le numéro.`);
+    return;
+  } else {
+    // Opérateur non assigné → demander
+    const choice = prompt(
+      `SIM ${simIdx+1} de "${p.name}" n'a pas d'opérateur assigné.\n\n` +
+      `Quel code USSD essayer ?\n` +
+      `  1. *99#   (Orange / MTN)\n` +
+      `  2. *106#  (Moov)\n\n` +
+      `Tapez 1 ou 2 :`,
+      '1'
+    );
+    if(!choice) return;
+    if(choice.trim() === '1'){ code = '*99#';  opLabel = 'Orange/MTN'; }
+    else if(choice.trim() === '2'){ code = '*106#'; opLabel = 'Moov'; }
+    else { addLog('warn','⚠️ Choix invalide.'); return; }
+  }
+
+  addLog('info', `📞 Identification SIM ${simIdx+1} de "${p.name}" via <strong>${code}</strong> (${opLabel})…`);
+  try {
+    const r = await fetch(`http://${p.ip}:8765/ussd-silent`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code, sim:simIdx, timeout:30}),
+      signal:AbortSignal.timeout(35000),
+    });
+    const d = await r.json();
+    if(d.status === 'ok'){
+      addLog('success', `✅ ${p.name} SIM ${simIdx+1} (${opLabel}) :`);
+      addLog('info', `<pre style="white-space:pre-wrap;margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:#00e676;font-weight:700;">${escapeHtml(d.response||'(vide)')}</pre>`);
+    } else if(d.status === 'failure'){
+      addLog('error', `❌ ${p.name} SIM ${simIdx+1} — opérateur rejette : ${d.reason || d.failureCode}. Essayez l'autre code USSD.`);
+    } else if(d.status === 'timeout'){
+      addLog('warn', `⏱ ${p.name} SIM ${simIdx+1} — pas de réponse modem dans 30s. La SIM n'a peut-être pas de réseau.`);
+    } else {
+      addLog('error', `❌ Erreur : ${d.error || JSON.stringify(d)}`);
+    }
+  } catch(e){
+    addLog('error',`❌ Erreur réseau : ${e.message}`);
+  }
 }
 
 function updatePhoneField(id, field, value){
