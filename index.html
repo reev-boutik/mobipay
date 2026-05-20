@@ -763,11 +763,12 @@ function openConfirm(){
   // Routing: find the phone+SIM configured for (network, service)
   const route = findRoute(selectedNet, selectedSvc);
   if(!route){
+    const usage = serviceToSimUsage(selectedSvc);
     const exists = findRouteAny(selectedNet, selectedSvc);
     if(exists){
-      addLog('error',`❌ Téléphone "${exists.phone.name}" (SIM ${exists.simIdx+1}) configuré pour ${NET_INFO[selectedNet].label}/${labelSvc(selectedSvc)} mais hors-ligne.`);
+      addLog('error',`❌ Téléphone "${exists.phone.name}" (SIM ${exists.simIdx+1}) configuré pour ${NET_INFO[selectedNet].label}/${labelSvc(usage)} mais hors-ligne.`);
     } else {
-      addLog('error',`❌ Aucun téléphone configuré pour ${NET_INFO[selectedNet].label} / ${labelSvc(selectedSvc)}. ⚙️ → Téléphones.`);
+      addLog('error',`❌ Aucun téléphone configuré pour ${NET_INFO[selectedNet].label} / ${labelSvc(usage)}. ⚙️ → Téléphones.`);
     }
     return;
   }
@@ -1283,7 +1284,14 @@ function renderFleetCard(){
 }
 
 function labelSvc(svc){
-  return {retrait:'Retrait', depot:'Dépôt', credit:'Crédit', qr:'QR'}[svc] || svc;
+  return {
+    money:   'Money',
+    credit:  'Crédit',
+    qr:      'QR',
+    // Legacy (operation-level) — au cas où d'anciens enregistrements traînent
+    retrait: 'Retrait',
+    depot:   'Dépôt',
+  }[svc] || svc;
 }
 
 // --- Render phones config in Settings → Téléphones ---
@@ -1306,16 +1314,22 @@ function phoneConfigRow(p){
       const sel = (s.network === n || (!s.network && n === '')) ? 'selected' : '';
       return `<option value="${n}" ${sel}>${lbl}</option>`;
     }).join('');
-    const svcOpts = ['','retrait','depot','credit','qr'].map(sv => {
-      const lbl = sv ? labelSvc(sv) : '— Service —';
-      const sel = (s.service === sv || (!s.service && sv === '')) ? 'selected' : '';
-      return `<option value="${sv}" ${sel}>${lbl}</option>`;
+    // SIM usage = type de compte (pas une opération). Une SIM Money fait
+    // retrait + dépôt + transfert. Une SIM Crédit fait airtime + forfaits.
+    const usageOpts = [
+      ['',       '— Usage —'],
+      ['money',  'Money (retrait/dépôt)'],
+      ['credit', 'Crédit / Forfaits'],
+      ['qr',     'QR (réception seule)'],
+    ].map(([v,lbl]) => {
+      const sel = (s.service === v || (!s.service && v === '')) ? 'selected' : '';
+      return `<option value="${v}" ${sel}>${lbl}</option>`;
     }).join('');
     return `
       <div class="phone-sim-row">
         <span class="sim-tag">SIM ${i+1}</span>
         <select onchange="updateSimField('${p.id}', ${i}, 'network', this.value)">${netOpts}</select>
-        <select onchange="updateSimField('${p.id}', ${i}, 'service', this.value)">${svcOpts}</select>
+        <select onchange="updateSimField('${p.id}', ${i}, 'service', this.value)">${usageOpts}</select>
       </div>`;
   }).join('');
   return `
@@ -1374,33 +1388,43 @@ function addManualPhone(){
   renderFleetCard();
 }
 
+// Routing helper: map cashier service (retrait/depot/credit) to SIM usage
+// (money = retrait+depot, credit = recharges/forfaits, qr = QR receive-only)
+function serviceToSimUsage(service){
+  if(service === 'retrait' || service === 'depot') return 'money';
+  if(service === 'credit') return 'credit';
+  if(service === 'qr')     return 'qr';
+  return service;
+}
+
 // --- Routing: find best phone for a (network, service) ---
 // Returns {phone, simIdx} or null
 function findRoute(network, service){
+  const usage = serviceToSimUsage(service);
   const fleet = loadFleet();
-  // 1. Look for online phone matching exactly (network, service)
+  // 1. Look for online phone matching (network, usage)
   for(const p of fleet){
     if(!p.online) continue;
     if(!p.sims) continue;
     for(let i=0; i<p.sims.length; i++){
       const s = p.sims[i];
-      if(s.network === network && s.service === service){
+      if(s.network === network && s.service === usage){
         return {phone:p, simIdx:i};
       }
     }
   }
-  // 2. No match. Returns null — caller will display error.
   return null;
 }
 
 // Same but ignore online state — used to know if config exists at all
 function findRouteAny(network, service){
+  const usage = serviceToSimUsage(service);
   const fleet = loadFleet();
   for(const p of fleet){
     if(!p.sims) continue;
     for(let i=0; i<p.sims.length; i++){
       const s = p.sims[i];
-      if(s.network === network && s.service === service){
+      if(s.network === network && s.service === usage){
         return {phone:p, simIdx:i};
       }
     }
