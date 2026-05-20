@@ -34,25 +34,11 @@
   .strip{width:100%;max-width:620px;background:var(--card);border:1px solid var(--border);
     border-radius:14px;padding:18px 22px;margin-bottom:10px;display:flex;align-items:center;gap:14px;}
 
-  /* FLEET */
-  .fleet-card{width:100%;max-width:620px;background:var(--card);border:1px solid var(--border);
-    border-radius:18px;padding:18px 22px;margin-bottom:12px;}
-  .fleet-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
-  .fleet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
-  .fleet-empty{grid-column:1/-1;text-align:center;color:var(--muted);font-size:14px;padding:20px 10px;line-height:1.7;}
-  .fleet-phone{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;
-    transition:all .2s;position:relative;}
-  .fleet-phone.online {border-color:rgba(0,230,118,.35);}
-  .fleet-phone.offline{border-color:rgba(255,76,76,.35);opacity:.7;}
-  .fleet-phone-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-  .fleet-phone-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex-shrink:0;}
-  .fleet-phone-dot.online {background:var(--green);box-shadow:0 0 6px rgba(0,230,118,.5);}
-  .fleet-phone-dot.offline{background:var(--red);}
-  .fleet-phone-name{font-weight:700;font-size:15px;color:var(--text);}
-  .fleet-phone-ip{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;}
-  .fleet-phone-sims{display:flex;flex-direction:column;gap:3px;font-size:12px;}
-  .fleet-phone-sim{display:flex;justify-content:space-between;color:var(--muted);}
-  .fleet-phone-sim .sim-label{font-weight:600;color:var(--text);}
+  /* FLEET STRIP (compact summary) */
+  .fleet-mini-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);display:inline-block;transition:all .3s;}
+  .fleet-mini-dot.online{background:var(--green);box-shadow:0 0 4px rgba(0,230,118,.6);animation:pulse 2s ease-in-out infinite;}
+  .fleet-mini-dot.offline{background:var(--red);}
+  #fleet-strip:hover{border-color:var(--orange);}
   .device-dot{width:14px;height:14px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s;}
   .device-dot.connected{background:var(--green);box-shadow:0 0 8px rgba(0,230,118,.5);animation:pulse 2s ease-in-out infinite;}
   .device-dot.error{background:var(--red);}
@@ -99,38 +85,53 @@
     font-size:11px;padding:3px 8px;border-radius:6px;font-weight:800;display:none;letter-spacing:.5px;}
   .net-badge.overridden .net-overrideflag{display:block;}
 
-  .services{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:18px 0 20px;}
+  .services{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0 16px;}
   .svc-btn{border:2px solid var(--border);border-radius:10px;background:var(--surface);
-    padding:16px 8px;cursor:pointer;text-align:center;font-family:'Syne',sans-serif;
-    font-size:16px;font-weight:700;color:var(--muted);transition:all .2s;}
-  .svc-btn .si{font-size:26px;display:block;margin-bottom:6px;}
+    padding:10px 8px;cursor:pointer;text-align:center;font-family:'Syne',sans-serif;
+    font-size:15px;font-weight:700;color:var(--muted);transition:all .2s;}
+  .svc-btn .si{font-size:22px;display:block;margin-bottom:2px;}
   .svc-btn:hover:not(:disabled){border-color:var(--orange);color:var(--text);}
   .svc-btn.active{border-color:var(--orange);background:var(--orange-glow);color:var(--orange);}
   .svc-btn:disabled{opacity:.35;cursor:not-allowed;}
 
-  .field{margin-bottom:18px;}
+  .field{margin-bottom:14px;}
   .field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.8px;text-transform:uppercase;}
   .field input, .field select{width:100%;background:#1a1f2c !important;border:2px solid var(--border);
-    border-radius:10px;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:18px !important;font-weight:600 !important;
+    border-radius:10px;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:18px !important;font-weight:600 !important;
     color:#ffffff !important;outline:none;transition:border-color .2s;letter-spacing:.5px;line-height:1.3;}
   .field select{font-family:'Syne',sans-serif;cursor:pointer;font-size:17px !important;}
   .field input:focus, .field select:focus{border-color:var(--orange);}
   .field input::placeholder{color:#6b7280 !important;font-size:18px !important;font-weight:400 !important;letter-spacing:.5px;}
 
   /* PRIMARY INPUTS — phone & amount must be very visible for cashier */
-  .field input#phone,
-  .field input#amount,
-  .field input#plan-amount {
-    font-size:30px !important;
+  input#phone,
+  input#amount,
+  input#plan-amount {
+    width:100% !important;
+    background:#1a1f2c !important;
+    border:2px solid var(--border) !important;
+    border-radius:10px !important;
+    color:#ffffff !important;
+    outline:none !important;
+    font-family:'JetBrains Mono',monospace !important;
+    font-size:32px !important;
     font-weight:700 !important;
-    padding:18px 20px !important;
+    padding:10px 18px !important;
     letter-spacing:2px !important;
+    line-height:1.2 !important;
   }
-  .field input#phone::placeholder,
-  .field input#amount::placeholder,
-  .field input#plan-amount::placeholder {
+  input#phone::placeholder,
+  input#amount::placeholder,
+  input#plan-amount::placeholder {
+    color:#6b7280 !important;
     font-size:24px !important;
+    font-weight:400 !important;
     letter-spacing:1px !important;
+  }
+  input#phone:focus,
+  input#amount:focus,
+  input#plan-amount:focus {
+    border-color:var(--orange) !important;
   }
 
   .ussd-preview{background:#0d1117;border:1.5px solid var(--border);border-radius:10px;
@@ -141,8 +142,8 @@
     animation:blink 1s step-end infinite;margin-left:2px;vertical-align:middle;}
   @keyframes blink{50%{opacity:0;}}
 
-  .btn-launch{width:100%;background:var(--orange);border:none;border-radius:12px;
-    padding:18px;font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;
+  .btn-launch{width:100%;background:var(--orange);border:none;border-radius:10px;
+    padding:13px;font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;
     cursor:pointer;box-shadow:0 4px 24px rgba(255,107,0,.35);transition:all .2s;
     display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:.5px;}
   .btn-launch span:first-child{font-size:20px;}
@@ -239,21 +240,15 @@
   </div>
 </header>
 
-<!-- FLEET STATUS -->
-<div class="fleet-card" id="fleet-card">
-  <div class="fleet-header">
-    <div class="strip-label" style="margin-bottom:0;">📱 FLOTTE DE TÉLÉPHONES</div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-sm" onclick="rescanFleet()" id="rescan-btn" title="Re-vérifier l'état">↻ Vérifier</button>
-      <button class="btn-sm" onclick="openSettings(); switchSettingsTab('phones')" title="Configurer les téléphones">⚙️ Config</button>
-    </div>
+<!-- FLEET STATUS — bandeau récap compact -->
+<div class="strip" id="fleet-strip" style="padding:10px 18px;cursor:pointer;" onclick="openSettings(); switchSettingsTab('phones')" title="Cliquer pour gérer les téléphones">
+  <div style="flex:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span class="strip-label" style="margin-bottom:0;">📱 FLOTTE</span>
+    <span id="fleet-summary" style="font-size:14px;color:var(--text);font-weight:600;">Chargement…</span>
   </div>
-  <div class="fleet-grid" id="fleet-grid">
-    <div class="fleet-empty">
-      Aucun téléphone configuré.<br>
-      <span style="color:var(--orange);">Clic ⚙️ Config pour ajouter les téléphones de la caisse.</span>
-    </div>
-  </div>
+  <div id="fleet-dots" style="display:flex;gap:5px;align-items:center;"></div>
+  <button class="btn-sm" onclick="event.stopPropagation(); rescanFleet();" id="rescan-btn" title="Vérifier l'état" style="padding:6px 10px;font-size:12px;">↻</button>
+  <button class="btn-sm" onclick="event.stopPropagation(); openSettings();" title="Paramètres" style="padding:6px 10px;font-size:13px;">⚙️</button>
 </div>
 
 <div class="card">
@@ -1334,32 +1329,25 @@ async function scanFleet(){
   renderPhonesConfig();
 }
 
-// --- Render fleet card (main view) ---
+// --- Render fleet strip (compact summary at top) ---
 function renderFleetCard(){
-  const grid = document.getElementById('fleet-grid');
+  const summary = document.getElementById('fleet-summary');
+  const dots    = document.getElementById('fleet-dots');
+  if(!summary || !dots) return;
   const fleet = loadFleet();
   if(fleet.length === 0){
-    grid.innerHTML = '<div class="fleet-empty">Aucun téléphone configuré.<br><span style="color:var(--orange);">Clic ⚙️ Config pour ajouter les téléphones de la caisse.</span></div>';
+    summary.innerHTML = '<span style="color:var(--orange);">Aucun téléphone configuré — clic pour configurer</span>';
+    dots.innerHTML = '';
     return;
   }
-  grid.innerHTML = fleet.map(p => {
-    const dotClass = p.online ? 'online' : 'offline';
-    const sims = (p.sims || []).map((s,i) => {
-      const role = (s.network && s.service)
-        ? `${NET_INFO[s.network]?.label || s.network} · ${labelSvc(s.service)}`
-        : '<span style="opacity:.5;">(libre)</span>';
-      return `<div class="fleet-phone-sim"><span class="sim-label">SIM ${i+1}</span> <span>${role}</span></div>`;
-    }).join('');
-    return `
-      <div class="fleet-phone ${dotClass}">
-        <div class="fleet-phone-head">
-          <div class="fleet-phone-dot ${dotClass}"></div>
-          <div class="fleet-phone-name">${escapeHtml(p.name || 'Téléphone')}</div>
-        </div>
-        <div class="fleet-phone-ip">${escapeHtml(p.ip || '?')}:8765</div>
-        <div class="fleet-phone-sims">${sims}</div>
-      </div>
-    `;
+  const onlineCount = fleet.filter(p => p.online).length;
+  const allOnline = onlineCount === fleet.length;
+  const color = allOnline ? 'var(--green)' : (onlineCount > 0 ? 'var(--orange)' : 'var(--red)');
+  summary.innerHTML = `<span style="color:${color};">${onlineCount}/${fleet.length} en ligne</span>`;
+  dots.innerHTML = fleet.map(p => {
+    const cls = p.online ? 'online' : 'offline';
+    const tip = `${p.name}${p.online ? ' • en ligne' : ' • hors-ligne'}`;
+    return `<span class="fleet-mini-dot ${cls}" title="${escapeAttr(tip)}"></span>`;
   }).join('');
 }
 
