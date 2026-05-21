@@ -4,127 +4,206 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MobiPay — USSD Mobile Money</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="qrcode.min.js"></script>
 <style>
   :root {
-    --bg:#0a0c10; --surface:#12151c; --card:#181c26; --border:#252a38;
-    --orange:#ff6b00; --orange-glow:rgba(255,107,0,0.15);
-    --blue:#00c6ff; --green:#00e676; --red:#ff4c4c;
-    --text:#e8eaf0; --muted:#6b7280;
+    /* Pastel light theme */
+    --bg:#eef2ff;
+    --surface:#ffffff;
+    --card:#ffffff;
+    --border:#e0e7ff;
+    --border-strong:#c7d2fe;
+    --orange:#ff6b00;
+    --orange-soft:#fff7ed;
+    --orange-glow:rgba(255,107,0,0.08);
+    --blue:#3b82f6;
+    --blue-soft:#dbeafe;
+    --green:#16a34a;
+    --green-soft:#dcfce7;
+    --red:#dc2626;
+    --red-soft:#fee2e2;
+    --violet:#7c3aed;
+    --violet-soft:#ede9fe;
+    --text:#1e1b4b;
+    --text-soft:#475569;
+    --muted:#94a3b8;
+    --shadow-sm:0 1px 2px rgba(30,27,75,.06);
+    --shadow-md:0 4px 12px rgba(30,27,75,.08);
+    --shadow-lg:0 10px 30px rgba(30,27,75,.10);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{
-    background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Manrope',sans-serif;
     font-size:16px;
-    min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
     padding:0 16px 60px;
-    background-image:
-      radial-gradient(ellipse 60% 40% at 50% 0%,rgba(255,107,0,0.07) 0%,transparent 70%),
-      radial-gradient(ellipse 30% 30% at 85% 15%,rgba(0,198,255,0.05) 0%,transparent 60%);
   }
   header{width:100%;max-width:620px;padding:32px 0 18px;display:flex;align-items:center;gap:14px;}
-  .logo-icon{width:56px;height:56px;background:var(--orange);border-radius:14px;
+  .logo-icon{
+    width:52px;height:52px;
+    background:var(--orange);
+    border-radius:14px;
     display:flex;align-items:center;justify-content:center;
-    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;color:#fff;
-    box-shadow:0 0 24px rgba(255,107,0,0.4);flex-shrink:0;}
-  .logo-text{font-size:30px;font-weight:800;letter-spacing:-0.5px;}
+    font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;color:#fff;
+    box-shadow:var(--shadow-md);
+    flex-shrink:0;
+  }
+  .logo-text{font-size:28px;font-weight:800;letter-spacing:-0.5px;color:var(--text);}
   .logo-text span{color:var(--orange);}
 
-  .strip{width:100%;max-width:620px;background:var(--card);border:1px solid var(--border);
-    border-radius:14px;padding:18px 22px;margin-bottom:10px;display:flex;align-items:center;gap:14px;}
+  .strip{
+    width:100%;max-width:620px;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:14px;
+    padding:14px 18px;
+    margin-bottom:10px;
+    display:flex;align-items:center;gap:14px;
+    box-shadow:var(--shadow-sm);
+  }
 
   /* FLEET STRIP (compact summary) */
   .fleet-mini-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);display:inline-block;transition:all .3s;}
-  .fleet-mini-dot.online{background:var(--green);box-shadow:0 0 4px rgba(0,230,118,.6);animation:pulse 2s ease-in-out infinite;}
+  .fleet-mini-dot.online{background:var(--green);box-shadow:0 0 4px rgba(22,163,74,.4);animation:pulse 2s ease-in-out infinite;}
   .fleet-mini-dot.offline{background:var(--red);}
-  #fleet-strip:hover{border-color:var(--orange);}
-  .device-dot{width:14px;height:14px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s;}
-  .device-dot.connected{background:var(--green);box-shadow:0 0 8px rgba(0,230,118,.5);animation:pulse 2s ease-in-out infinite;}
+  #fleet-strip{cursor:pointer;transition:all .15s;}
+  #fleet-strip:hover{border-color:var(--orange);box-shadow:var(--shadow-md);}
+  .device-dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s;}
+  .device-dot.connected{background:var(--green);box-shadow:0 0 6px rgba(22,163,74,.4);animation:pulse 2s ease-in-out infinite;}
   .device-dot.error{background:var(--red);}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
   .device-info{flex:1;}
-  .strip-label{font-size:13px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;font-weight:600;}
-  .device-name{font-size:16px;font-weight:700;color:var(--text);margin-top:3px;font-family:'JetBrains Mono',monospace;}
-  .ip-input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
-    padding:11px 14px;font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--blue);
+  .strip-label{font-size:12px;color:var(--text-soft);letter-spacing:.5px;text-transform:uppercase;font-weight:700;}
+  .device-name{font-size:15px;font-weight:600;color:var(--text);margin-top:3px;}
+  .ip-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;
+    padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--blue);
     outline:none;transition:border-color .2s;}
   .ip-input:focus{border-color:var(--orange);}
-  .btn-sm{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
-    padding:11px 18px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
-    color:var(--text);cursor:pointer;transition:all .2s;white-space:nowrap;}
-  .btn-sm:hover{border-color:var(--orange);color:var(--orange);}
+  .btn-sm{
+    background:var(--surface);
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    padding:9px 16px;
+    font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;
+    color:var(--text);cursor:pointer;transition:all .15s;white-space:nowrap;
+  }
+  .btn-sm:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-soft);}
   .btn-sm:disabled{opacity:.5;cursor:not-allowed;}
   .sim-sel{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
-    padding:11px 14px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);outline:none;cursor:pointer;}
+    padding:10px 14px;font-family:'Manrope',sans-serif;font-size:14px;color:var(--text);outline:none;cursor:pointer;}
 
-  .card{width:100%;max-width:620px;background:var(--card);border:1px solid var(--border);
-    border-radius:20px;padding:24px 22px;margin-bottom:12px;position:relative;overflow:hidden;}
-  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
-    background:linear-gradient(90deg,transparent,var(--orange),transparent);opacity:.7;}
-  .section-label{font-size:13px;font-weight:700;letter-spacing:1.2px;color:var(--muted);
+  .card{
+    width:100%;max-width:620px;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:18px;
+    padding:24px 22px;
+    margin-bottom:12px;
+    box-shadow:var(--shadow-md);
+  }
+  .section-label{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--text-soft);
     text-transform:uppercase;margin-bottom:12px;}
 
-  .phone-row{display:flex;gap:12px;align-items:stretch;margin-bottom:8px;}
+  .phone-row{display:flex;gap:10px;align-items:stretch;margin-bottom:8px;}
   .phone-row input{flex:1;}
   .net-badge{display:flex;flex-direction:column;align-items:center;justify-content:center;
-    min-width:110px;border:2px solid var(--border);border-radius:10px;padding:8px 12px;
-    cursor:pointer;transition:all .2s;background:var(--surface);position:relative;user-select:none;}
-  .net-badge:hover{border-color:var(--orange);}
-  .net-badge .net-logo{width:42px;height:42px;border-radius:50%;font-weight:800;font-size:13px;
+    min-width:110px;border:1.5px solid var(--border);border-radius:12px;padding:8px 12px;
+    cursor:pointer;transition:all .15s;background:var(--surface);position:relative;user-select:none;
+    box-shadow:var(--shadow-sm);}
+  .net-badge:hover{border-color:var(--orange);box-shadow:var(--shadow-md);}
+  .net-badge .net-logo{width:40px;height:40px;border-radius:50%;font-weight:800;font-size:12px;
     display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:5px;background:var(--muted);}
-  .net-badge .net-name{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.5px;}
+  .net-badge .net-name{font-size:12px;font-weight:700;color:var(--text-soft);letter-spacing:.3px;}
   .net-badge.net-orange .net-logo{background:#ff6b00;}
   .net-badge.net-moov   .net-logo{background:#e60026;}
-  .net-badge.net-mtn    .net-logo{background:#ffcc00;color:#000;}
+  .net-badge.net-mtn    .net-logo{background:#fbbf24;color:#1f2937;}
   .net-badge.net-wave   .net-logo{background:#1a73e8;}
-  .net-badge.net-orangepay .net-logo{background:#ff6b00;border:2px solid #fff;}
-  .net-badge.active{border-color:var(--orange);background:rgba(255,107,0,.06);}
-  .net-badge.active .net-name{color:var(--text);}
+  .net-badge.net-orangepay .net-logo{background:#ff6b00;border:2px solid #fff;box-shadow:0 0 0 1px #ff6b00;}
+  .net-badge.active{border-color:var(--orange);background:var(--orange-soft);}
+  .net-badge.active .net-name{color:var(--orange);}
   .net-badge .net-overrideflag{position:absolute;top:-8px;right:-8px;background:var(--orange);color:#fff;
-    font-size:11px;padding:3px 8px;border-radius:6px;font-weight:800;display:none;letter-spacing:.5px;}
+    font-size:10px;padding:3px 7px;border-radius:6px;font-weight:800;display:none;letter-spacing:.3px;
+    box-shadow:var(--shadow-sm);}
   .net-badge.overridden .net-overrideflag{display:block;}
 
   .services{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0 16px;}
-  .svc-btn{border:2px solid var(--border);border-radius:10px;background:var(--surface);
-    padding:10px 8px;cursor:pointer;text-align:center;font-family:'Syne',sans-serif;
-    font-size:15px;font-weight:700;color:var(--muted);transition:all .2s;}
-  .svc-btn .si{font-size:22px;display:block;margin-bottom:2px;}
-  .svc-btn:hover:not(:disabled){border-color:var(--orange);color:var(--text);}
-  .svc-btn.active{border-color:var(--orange);background:var(--orange-glow);color:var(--orange);}
+  .svc-btn{
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    background:var(--surface);
+    padding:12px 8px;
+    cursor:pointer;text-align:center;
+    font-family:'Manrope',sans-serif;
+    font-size:15px;font-weight:700;
+    color:var(--text-soft);
+    transition:all .15s;
+    box-shadow:var(--shadow-sm);
+  }
+  .svc-btn .si{font-size:24px;display:block;margin-bottom:3px;}
+  .svc-btn:hover:not(:disabled){border-color:var(--orange);color:var(--orange);background:var(--orange-soft);box-shadow:var(--shadow-md);}
+  .svc-btn.active{border-color:var(--orange);background:var(--orange-soft);color:var(--orange);}
   .svc-btn:disabled{opacity:.35;cursor:not-allowed;}
 
   .field{margin-bottom:14px;}
-  .field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.8px;text-transform:uppercase;}
-  .field input, .field select{width:100%;background:#1a1f2c !important;border:2px solid var(--border);
-    border-radius:10px;padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:18px !important;font-weight:600 !important;
-    color:#ffffff !important;outline:none;transition:border-color .2s;letter-spacing:.5px;line-height:1.3;}
-  .field select{font-family:'Syne',sans-serif;cursor:pointer;font-size:17px !important;}
-  .field input:focus, .field select:focus{border-color:var(--orange);}
-  .field input::placeholder{color:#6b7280 !important;font-size:18px !important;font-weight:400 !important;letter-spacing:.5px;}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--text-soft);margin-bottom:7px;letter-spacing:.5px;text-transform:uppercase;}
+  .field input, .field select{
+    width:100%;
+    background:var(--surface) !important;
+    border:1.5px solid var(--border) !important;
+    border-radius:10px !important;
+    padding:11px 16px !important;
+    font-family:'Manrope',sans-serif !important;
+    font-size:17px !important;
+    font-weight:600 !important;
+    color:var(--text) !important;
+    outline:none;
+    transition:all .15s;
+    letter-spacing:.3px;
+    line-height:1.3;
+    font-feature-settings:"tnum";
+  }
+  .field select{cursor:pointer;font-size:16px !important;}
+  .field input:focus, .field select:focus{border-color:var(--orange) !important;box-shadow:0 0 0 3px rgba(255,107,0,.1);}
+  .field input::placeholder{color:#9ca3af !important;font-size:16px !important;font-weight:400 !important;letter-spacing:.3px;}
 
   /* PRIMARY INPUTS — phone & amount must be very visible for cashier */
   input#phone,
   input#amount,
   input#plan-amount {
     width:100% !important;
-    background:#1a1f2c !important;
-    border:2px solid var(--border) !important;
+    background:var(--surface) !important;
+    border:1.5px solid var(--border) !important;
+    border-radius:12px !important;
+    color:var(--text) !important;
+    outline:none !important;
+    font-family:'Manrope',sans-serif !important;
+    font-size:30px !important;
+    font-weight:700 !important;
+    padding:14px 18px !important;
+    letter-spacing:1.5px !important;
+    line-height:1.2 !important;
+    font-feature-settings:"tnum";
+    box-shadow:var(--shadow-sm);
+  }
     border-radius:10px !important;
     color:#ffffff !important;
     outline:none !important;
     font-family:'JetBrains Mono',monospace !important;
     font-size:32px !important;
     font-weight:700 !important;
-    padding:10px 18px !important;
-    letter-spacing:2px !important;
+    padding:14px 18px !important;
+    letter-spacing:1.5px !important;
     line-height:1.2 !important;
   }
   input#phone::placeholder,
   input#amount::placeholder,
   input#plan-amount::placeholder {
-    color:#6b7280 !important;
-    font-size:24px !important;
+    color:#9ca3af !important;
+    font-size:22px !important;
     font-weight:400 !important;
     letter-spacing:1px !important;
   }
@@ -132,33 +211,58 @@
   input#amount:focus,
   input#plan-amount:focus {
     border-color:var(--orange) !important;
+    box-shadow:0 0 0 3px rgba(255,107,0,.1) !important;
   }
 
-  .ussd-preview{background:#0d1117;border:1.5px solid var(--border);border-radius:10px;
-    padding:14px 18px;margin-bottom:20px;font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;
-    color:var(--green);display:flex;align-items:center;gap:12px;min-height:52px;letter-spacing:.5px;}
-  .ussd-label{color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:600;}
+  .ussd-preview{
+    background:var(--bg);
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    padding:14px 18px;
+    margin-bottom:20px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:17px;font-weight:700;
+    color:var(--green);
+    display:flex;align-items:center;gap:12px;min-height:52px;letter-spacing:.5px;
+  }
+  .ussd-label{color:var(--text-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
   .cursor{display:inline-block;width:2px;height:17px;background:var(--green);
     animation:blink 1s step-end infinite;margin-left:2px;vertical-align:middle;}
   @keyframes blink{50%{opacity:0;}}
 
-  .btn-launch{width:100%;background:var(--orange);border:none;border-radius:10px;
-    padding:13px;font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;
-    cursor:pointer;box-shadow:0 4px 24px rgba(255,107,0,.35);transition:all .2s;
-    display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:.5px;}
+  .btn-launch{
+    width:100%;
+    background:var(--orange);
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    font-family:'Manrope',sans-serif;
+    font-size:17px;font-weight:800;color:#fff;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(255,107,0,.25);
+    transition:all .15s;
+    display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:.3px;
+  }
   .btn-launch span:first-child{font-size:20px;}
-  .btn-launch:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 32px rgba(255,107,0,.45);}
+  .btn-launch:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,107,0,.35);}
   .btn-launch:disabled{opacity:.45;cursor:not-allowed;}
   .spin{animation:spin .8s linear infinite;display:inline-block;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
-  .log-card{width:100%;max-width:620px;background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
-  .log-header{padding:18px 28px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;
-    letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
+  .log-card{
+    width:100%;max-width:620px;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:var(--shadow-md);
+  }
+  .log-header{padding:16px 24px;border-bottom:1.5px solid var(--border);font-size:13px;font-weight:700;
+    letter-spacing:1px;color:var(--text-soft);text-transform:uppercase;display:flex;align-items:center;gap:10px;}
   .dot{width:10px;height:10px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite;}
-  .log-body{padding:16px 28px;min-height:120px;max-height:300px;overflow-y:auto;}
-  .log-empty{color:var(--muted);font-size:16px;font-family:'JetBrains Mono',monospace;text-align:center;padding:30px 0;opacity:.6;}
-  .log-entry{display:flex;gap:14px;align-items:flex-start;padding:10px 0;
+  .log-body{padding:14px 24px;min-height:120px;max-height:300px;overflow-y:auto;background:#fafbff;}
+  .log-empty{color:var(--muted);font-size:15px;text-align:center;padding:30px 0;opacity:.7;}
+  .log-entry{display:flex;gap:14px;align-items:flex-start;padding:9px 0;
     border-bottom:1px solid rgba(255,255,255,.04);animation:fadeIn .3s ease;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
   .log-time{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);white-space:nowrap;padding-top:2px;font-weight:600;}
@@ -166,73 +270,98 @@
   .log-entry.success .log-msg{color:var(--green);} .log-entry.error .log-msg{color:var(--red);}
   .log-entry.info .log-msg{color:var(--blue);} .log-entry.warn .log-msg{color:var(--orange);}
 
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;
-    align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:16px;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,27,75,.45);z-index:100;
+    align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:16px;}
   .modal-overlay.show{display:flex;}
-  .modal{background:var(--card);border:1px solid var(--border);border-radius:20px;
-    padding:36px 32px;max-width:480px;width:100%;text-align:center;
-    animation:popIn .3s cubic-bezier(0.34,1.56,.64,1);max-height:90vh;overflow-y:auto;}
-  @keyframes popIn{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
-  .modal-icon{font-size:60px;margin-bottom:16px;}
-  .modal-title{font-size:26px;font-weight:800;margin-bottom:10px;}
-  .modal-sub{font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:22px;}
-  .modal-ussd{background:#0d1117;border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;
-    font-size:20px;font-weight:700;color:var(--green);margin-bottom:16px;letter-spacing:1px;word-break:break-all;}
-  .modal-device{font-size:14px;color:var(--blue);margin-bottom:22px;font-family:'JetBrains Mono',monospace;}
-  .modal-actions{display:flex;gap:12px;flex-wrap:wrap;}
-  .btn-confirm{flex:1;padding:16px;border-radius:12px;background:var(--green);color:#0a0c10;
-    border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;transition:opacity .2s;min-width:110px;}
-  .btn-confirm:hover{opacity:.85;}
-  .btn-cancel{flex:1;padding:16px;border-radius:12px;background:transparent;color:var(--muted);
-    border:1.5px solid var(--border);cursor:pointer;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;transition:all .2s;min-width:110px;}
-  .btn-cancel:hover{border-color:var(--text);color:var(--text);}
+  .modal{
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:20px;
+    padding:32px 28px;
+    max-width:480px;width:100%;text-align:center;
+    animation:popIn .25s cubic-bezier(0.34,1.56,.64,1);
+    max-height:90vh;overflow-y:auto;
+    box-shadow:var(--shadow-lg);
+  }
+  @keyframes popIn{from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}
+  .modal-icon{font-size:56px;margin-bottom:14px;}
+  .modal-title{font-size:24px;font-weight:800;margin-bottom:10px;color:var(--text);}
+  .modal-sub{font-size:15px;color:var(--text-soft);line-height:1.6;margin-bottom:22px;}
+  .modal-ussd{
+    background:var(--bg);
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:19px;font-weight:700;
+    color:var(--green);
+    margin-bottom:16px;letter-spacing:1px;word-break:break-all;
+  }
+  .modal-device{font-size:14px;color:var(--blue);margin-bottom:22px;font-weight:600;}
+  .modal-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .btn-confirm{flex:1;padding:14px;border-radius:12px;background:var(--green);color:#fff;
+    border:none;cursor:pointer;font-family:'Manrope',sans-serif;font-weight:800;font-size:15px;
+    transition:all .15s;min-width:110px;box-shadow:0 4px 12px rgba(22,163,74,.25);}
+  .btn-confirm:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(22,163,74,.35);}
+  .btn-cancel{flex:1;padding:14px;border-radius:12px;background:transparent;color:var(--text-soft);
+    border:1.5px solid var(--border);cursor:pointer;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;
+    transition:all .15s;min-width:110px;}
+  .btn-cancel:hover{border-color:var(--text);color:var(--text);background:var(--bg);}
 
-  .settings-tab{flex:1;padding:13px 14px;background:transparent;color:var(--muted);border:none;
-    border-bottom:2px solid transparent;cursor:pointer;font-size:15px;font-weight:700;transition:all .15s;white-space:nowrap;}
-  .settings-tab.active{color:#fff;border-bottom-color:var(--orange);}
-  .settings-tab:hover:not(.active){color:#aaa;}
-  .op-mini-btn{padding:9px 18px;background:var(--card);color:var(--muted);border:1.5px solid var(--border);
-    border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;transition:all .15s;}
+  .settings-tab{flex:1;padding:12px 14px;background:transparent;color:var(--text-soft);border:none;
+    border-bottom:2px solid transparent;cursor:pointer;font-size:14px;font-weight:700;transition:all .15s;white-space:nowrap;
+    font-family:'Manrope',sans-serif;}
+  .settings-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+  .settings-tab:hover:not(.active){color:var(--text);background:var(--orange-soft);}
+  .op-mini-btn{padding:8px 16px;background:var(--surface);color:var(--text-soft);border:1.5px solid var(--border);
+    border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;transition:all .15s;font-family:'Manrope',sans-serif;}
   .op-mini-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);}
-  .op-mini-btn:hover:not(.active){background:#222633;color:#fff;}
+  .op-mini-btn:hover:not(.active){background:var(--orange-soft);color:var(--orange);border-color:var(--orange);}
 
-  .plans-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;text-align:left;}
-  .plan-row{display:flex;gap:8px;align-items:stretch;}
+  .plans-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;text-align:left;}
+  .plan-row{display:flex;gap:6px;align-items:stretch;}
   .plan-row input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
-    padding:11px 13px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);outline:none;}
-  .plan-row input:focus{border-color:var(--orange);}
-  .plan-row input.plan-label{flex:1.4;font-family:'Syne',sans-serif;}
-  .plan-row input.plan-amount{flex:.7;}
-  .plan-row .del-btn{background:transparent;border:1.5px solid var(--border);border-radius:8px;
-    padding:0 14px;color:var(--red);cursor:pointer;font-size:16px;}
+    padding:10px 12px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--text);outline:none;}
+  .plan-row input:focus{border-color:var(--orange);box-shadow:0 0 0 2px rgba(255,107,0,.1);}
+  .plan-row input.plan-label{flex:1.4;}
+  .plan-row input.plan-amount{flex:.7;font-family:'JetBrains Mono',monospace;}
+  .plan-row input.plan-code{font-family:'JetBrains Mono',monospace;}
+  .plan-row .del-btn{background:var(--red-soft);border:1.5px solid var(--red-soft);border-radius:8px;
+    padding:0 12px;color:var(--red);cursor:pointer;font-size:14px;transition:all .15s;}
+  .plan-row .del-btn:hover{background:var(--red);color:#fff;}
 
-  .wave-qr-container{background:#fff;padding:24px;border-radius:16px;display:inline-block;margin:0 auto;}
+  .wave-qr-container{background:#fff;padding:20px;border-radius:16px;display:inline-block;margin:0 auto;
+    border:1.5px solid var(--border);box-shadow:var(--shadow-md);}
   .wave-qr-container canvas, .wave-qr-container img{display:block;max-width:100%;height:auto;}
-  .wave-amount-display{font-size:38px;font-weight:800;color:var(--orange);margin:18px 0 6px;
-    font-family:'JetBrains Mono',monospace;}
-  .wave-instructions{font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+  .wave-amount-display{font-size:36px;font-weight:800;color:var(--orange);margin:16px 0 6px;
+    font-family:'Manrope',sans-serif;letter-spacing:.5px;font-feature-settings:"tnum";}
+  .wave-instructions{font-size:15px;color:var(--text-soft);line-height:1.6;margin-bottom:20px;}
 
   /* PHONE CONFIG (settings → Téléphones) */
-  .phone-config{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;}
+  .phone-config{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:14px;}
   .phone-config-head{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
-  .phone-config-head input.phone-name{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:8px;
-    padding:9px 12px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;}
-  .phone-config-head input.phone-ip{flex:1.1;background:var(--card);border:1.5px solid var(--border);border-radius:8px;
+  .phone-config-head input.phone-name{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
+    padding:9px 12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;}
+  .phone-config-head input.phone-name:focus{border-color:var(--orange);box-shadow:0 0 0 2px rgba(255,107,0,.1);}
+  .phone-config-head input.phone-ip{flex:1.1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
     padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--blue);outline:none;}
+  .phone-config-head input.phone-ip:focus{border-color:var(--orange);box-shadow:0 0 0 2px rgba(255,107,0,.1);}
   .phone-config-head .phone-dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex-shrink:0;}
-  .phone-config-head .phone-dot.online {background:var(--green);}
+  .phone-config-head .phone-dot.online {background:var(--green);box-shadow:0 0 6px rgba(22,163,74,.4);}
   .phone-config-head .phone-dot.offline{background:var(--red);}
-  .phone-config-head .del-btn{background:transparent;border:1.5px solid var(--border);border-radius:8px;
-    padding:0 12px;color:var(--red);cursor:pointer;font-size:14px;height:36px;}
+  .phone-config-head .del-btn{background:var(--red-soft);border:1.5px solid var(--red-soft);border-radius:8px;
+    padding:0 12px;color:var(--red);cursor:pointer;font-size:14px;height:36px;transition:all .15s;}
+  .phone-config-head .del-btn:hover{background:var(--red);color:#fff;}
   .phone-sim-row{display:flex;gap:8px;align-items:center;margin-top:6px;font-size:13px;}
   .phone-sim-row .sim-tag{min-width:54px;font-weight:700;color:var(--orange);font-family:'JetBrains Mono',monospace;}
-  .phone-sim-row select{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:8px;
-    padding:8px 10px;font-family:'Syne',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;}
-  .phone-sim-row .sim-identify-btn{background:#1f3a5f;border:1.5px solid #2a4a75;border-radius:8px;
-    padding:0 12px;color:#fff;cursor:pointer;font-size:14px;height:36px;transition:all .15s;}
-  .phone-sim-row .sim-identify-btn:hover{background:#2a4a75;border-color:var(--blue);}
+  .phone-sim-row select{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
+    padding:8px 10px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;}
+  .phone-sim-row select:focus{border-color:var(--orange);}
+  .phone-sim-row .sim-identify-btn{background:var(--blue-soft);border:1.5px solid var(--blue-soft);border-radius:8px;
+    padding:0 12px;color:var(--blue);cursor:pointer;font-size:14px;height:36px;transition:all .15s;}
+  .phone-sim-row .sim-identify-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
   .phone-sim-row .sim-identify-btn:active{transform:scale(.95);}
-  .sim-identified{margin-left:64px;margin-top:-2px;margin-bottom:4px;font-size:12px;font-family:'JetBrains Mono',monospace;color:#00e676;font-weight:700;}
+  .sim-identified{margin-left:64px;margin-top:-2px;margin-bottom:4px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700;}
 </style>
 </head>
 <body>
@@ -1434,30 +1563,59 @@ const IDENTIFY_USSD = {
   // Wave/Orange Pay : pas d'USSD direct, on ne propose pas
 };
 
-// Parse opérateur response → extract phone number + profile type
+// Parse opérateur response → extract phone number + profile + detect operator
 function parseIdentifyResponse(text){
-  const result = {number:null, profile:null, suggested:null};
+  const result = {number:null, profile:null, suggested:null, detectedOp:null};
   if(!text) return result;
-  // Numéro : cherche une séquence de 8+ chiffres (CI = 10 chiffres ou 13 avec 225)
+
+  // Detect operator from response content
+  const lower = text.toLowerCase();
+  if(/moov|\bmsisdn\b.*225/i.test(text))  result.detectedOp = 'moov';
+  else if(/orange/i.test(text))            result.detectedOp = 'orange';
+  else if(/mtn/i.test(text))               result.detectedOp = 'mtn';
+
+  // Numéro : cherche une séquence de 8+ chiffres
   const numMatch = text.match(/\b(\+?225)?(\d{10}|\d{13})\b/);
   if(numMatch){
     let num = numMatch[0].replace(/^225/, '').replace(/^\+225/, '');
-    // Si on a 13 chiffres dont 225 au début → enlever
     if(num.length === 13 && num.startsWith('225')) num = num.slice(3);
     result.number = num;
+    // CI prefix → operator (utilisé si pas détecté par texte)
+    if(!result.detectedOp){
+      const prefix = num.slice(0,2);
+      if(['07','08'].includes(prefix)) result.detectedOp = 'orange';
+      else if(['01','02'].includes(prefix)) result.detectedOp = 'moov';
+      else if(['05','04'].includes(prefix)) result.detectedOp = 'mtn';
+    }
   }
+
   // Profil : "profil actuel est XXX" (Moov) ou autres patterns
   const profMatch = text.match(/profil\s+actuel\s+est\s+([A-Za-z0-9_\- ]+?)(?:[.,]|\s+Merci|$)/i);
-  if(profMatch){
-    result.profile = profMatch[1].trim();
-  }
+  if(profMatch) result.profile = profMatch[1].trim();
+
   // Suggestion service basée sur le profil
   if(result.profile){
-    const lower = result.profile.toLowerCase();
-    if(/cabine|airtime|recharge|credit/.test(lower))     result.suggested = 'credit';
-    else if(/retailer|marchand|money|caisse|agent/.test(lower)) result.suggested = 'money';
+    const p = result.profile.toLowerCase();
+    if(/cabine|airtime|recharge|credit/.test(p))     result.suggested = 'credit';
+    else if(/retailer|marchand|money|caisse|agent/.test(p)) result.suggested = 'money';
   }
   return result;
+}
+
+// Try one USSD code on the bridge, returns parsed result or null on failure
+async function tryIdentifyCode(p, simIdx, code){
+  try {
+    const r = await fetch(`http://${p.ip}:8765/ussd-silent`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code, sim:simIdx, timeout:30}),
+      signal:AbortSignal.timeout(35000),
+    });
+    const d = await r.json();
+    return d;
+  } catch(e){
+    return {status:'network_error', error: e.message};
+  }
 }
 
 async function identifySimNumber(phoneId, simIdx){
@@ -1470,69 +1628,77 @@ async function identifySimNumber(phoneId, simIdx){
   }
   const sim = (p.sims && p.sims[simIdx]) || {};
 
-  let code;
-  let opLabel;
+  // Strategy: if SIM already has a known operator → just use the right code.
+  // Otherwise → try *106# (Moov) first, then *99# (Orange/MTN). The successful
+  // call tells us which operator the SIM belongs to.
+  const attempts = [];
   if(sim.network && IDENTIFY_USSD[sim.network]){
-    code = IDENTIFY_USSD[sim.network];
-    opLabel = NET_INFO[sim.network].label;
+    attempts.push({code: IDENTIFY_USSD[sim.network], label: NET_INFO[sim.network].label});
   } else if(sim.network && QR_NETWORKS.includes(sim.network)){
-    addLog('warn',`⚠️ ${NET_INFO[sim.network].label} = QR seul, pas d'USSD pour identifier le numéro.`);
+    addLog('warn',`⚠️ ${NET_INFO[sim.network].label} = QR seul, pas d'USSD pour identifier.`);
     return;
   } else {
-    const choice = prompt(
-      `SIM ${simIdx+1} de "${p.name}" n'a pas d'opérateur assigné.\n\n` +
-      `Quel code USSD essayer ?\n` +
-      `  1. *99#   (Orange / MTN)\n` +
-      `  2. *106#  (Moov)\n\n` +
-      `Tapez 1 ou 2 :`,
-      '1'
-    );
-    if(!choice) return;
-    if(choice.trim() === '1'){ code = '*99#';  opLabel = 'Orange/MTN'; }
-    else if(choice.trim() === '2'){ code = '*106#'; opLabel = 'Moov'; }
-    else { addLog('warn','⚠️ Choix invalide.'); return; }
+    // Auto-discover: try Moov first, then Orange/MTN
+    attempts.push({code: '*106#', label: 'Moov'});
+    attempts.push({code: '*99#',  label: 'Orange/MTN'});
   }
 
-  addLog('info', `📞 Identification SIM ${simIdx+1} de "${p.name}" via <strong>${code}</strong> (${opLabel})…`);
-  try {
-    const r = await fetch(`http://${p.ip}:8765/ussd-silent`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({code, sim:simIdx, timeout:30}),
-      signal:AbortSignal.timeout(35000),
-    });
-    const d = await r.json();
+  addLog('info', `📞 Identification SIM ${simIdx+1} de "${p.name}"…`);
+  let success = null;
+  let lastFailure = null;
+
+  for(const att of attempts){
+    addLog('info', `  → essai <strong>${att.code}</strong> (${att.label})…`);
+    const d = await tryIdentifyCode(p, simIdx, att.code);
     if(d.status === 'ok'){
-      const parsed = parseIdentifyResponse(d.response || '');
-      // Sauvegarder dans la flotte
-      const fleet2 = loadFleet();
-      const p2 = fleet2.find(x => x.id === phoneId);
-      if(p2 && p2.sims && p2.sims[simIdx]){
-        p2.sims[simIdx].identifiedNumber  = parsed.number  || null;
-        p2.sims[simIdx].identifiedProfile = parsed.profile || null;
-        // Auto-suggest le service si non assigné encore
-        if(!p2.sims[simIdx].service && parsed.suggested){
-          p2.sims[simIdx].service = parsed.suggested;
-        }
-        saveFleet(fleet2);
-        renderPhonesConfig();
-        renderFleetCard();
-      }
-      addLog('success', `✅ ${p.name} SIM ${simIdx+1} (${opLabel}) :`);
-      if(parsed.number){
-        addLog('info', `📞 <strong style="color:#00e676;">${parsed.number}</strong>${parsed.profile ? ` · Profil : <strong style="color:var(--orange);">${parsed.profile}</strong>` : ''}${parsed.suggested ? ` → suggéré : <em>${labelSvc(parsed.suggested)}</em>` : ''}`);
-      }
-      addLog('info', `<pre style="white-space:pre-wrap;margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:#00e676;">${escapeHtml(d.response||'(vide)')}</pre>`);
-    } else if(d.status === 'failure'){
-      addLog('error', `❌ ${p.name} SIM ${simIdx+1} — opérateur rejette : ${d.reason || d.failureCode}. Essayez l'autre code USSD.`);
-    } else if(d.status === 'timeout'){
-      addLog('warn', `⏱ ${p.name} SIM ${simIdx+1} — pas de réponse modem dans 30s. La SIM n'a peut-être pas de réseau.`);
-    } else {
-      addLog('error', `❌ Erreur : ${d.error || JSON.stringify(d)}`);
+      success = {response: d.response || '', code: att.code, label: att.label};
+      break;
     }
-  } catch(e){
-    addLog('error',`❌ Erreur réseau : ${e.message}`);
+    lastFailure = d;
+    if(d.status === 'failure'){
+      addLog('warn', `  ⚠️ ${att.label} rejette (${d.reason || d.failureCode}). Essai suivant…`);
+    } else if(d.status === 'timeout'){
+      addLog('warn', `  ⏱ ${att.label} timeout. Essai suivant…`);
+    } else if(d.status === 'network_error'){
+      addLog('error', `  ❌ Erreur réseau : ${d.error}`);
+      break;
+    }
   }
+
+  if(!success){
+    addLog('error', `❌ ${p.name} SIM ${simIdx+1} — impossible d'identifier (tous les codes rejetés ou timeout).`);
+    return;
+  }
+
+  // Parse + save + UI update
+  const parsed = parseIdentifyResponse(success.response);
+  const fleet2 = loadFleet();
+  const p2 = fleet2.find(x => x.id === phoneId);
+  if(p2 && p2.sims && p2.sims[simIdx]){
+    p2.sims[simIdx].identifiedNumber  = parsed.number  || null;
+    p2.sims[simIdx].identifiedProfile = parsed.profile || null;
+    // Auto-assigner l'opérateur si pas déjà fait et qu'on l'a détecté
+    if(!p2.sims[simIdx].network && parsed.detectedOp){
+      p2.sims[simIdx].network = parsed.detectedOp;
+    }
+    // Auto-suggérer le service si non assigné
+    if(!p2.sims[simIdx].service && parsed.suggested){
+      p2.sims[simIdx].service = parsed.suggested;
+    }
+    saveFleet(fleet2);
+    renderPhonesConfig();
+    renderFleetCard();
+  }
+
+  addLog('success', `✅ ${p.name} SIM ${simIdx+1} (${success.label}) :`);
+  if(parsed.number){
+    const opLabel = parsed.detectedOp ? NET_INFO[parsed.detectedOp].label : success.label;
+    const detected = parsed.detectedOp ? ` · <strong style="color:var(--orange);">${opLabel}</strong>` : '';
+    const profile  = parsed.profile ? ` · Profil : <strong style="color:var(--orange);">${parsed.profile}</strong>` : '';
+    const suggest  = parsed.suggested ? ` → suggéré : <em>${labelSvc(parsed.suggested)}</em>` : '';
+    addLog('info', `📞 <strong style="color:var(--green);">${parsed.number}</strong>${detected}${profile}${suggest}`);
+  }
+  addLog('info', `<pre style="white-space:pre-wrap;margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);">${escapeHtml(success.response||'(vide)')}</pre>`);
 }
 
 function updatePhoneField(id, field, value){
