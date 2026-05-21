@@ -495,6 +495,7 @@
 
     <div style="display:flex;gap:6px;margin:14px 0 18px;border-bottom:1px solid var(--border);overflow-x:auto;">
       <button id="tab-phones"    class="settings-tab"        onclick="switchSettingsTab('phones')">📱 Téléphones</button>
+      <button id="tab-numbers"   class="settings-tab"        onclick="switchSettingsTab('numbers')">📞 Numéros</button>
       <button id="tab-pins"      class="settings-tab active" onclick="switchSettingsTab('pins')">🔐 PINs</button>
       <button id="tab-plans"     class="settings-tab"        onclick="switchSettingsTab('plans')">📋 Forfaits</button>
       <button id="tab-cash"      class="settings-tab"        onclick="switchSettingsTab('cash')">💸 Cash</button>
@@ -608,6 +609,17 @@
       </div>
 
       <button class="btn-sm" onclick="copyInstallUrl()" style="font-size:12px;">📋 Copier l'URL</button>
+    </div>
+
+    <div id="settings-numbers-tab" style="display:none;">
+      <div class="modal-sub" style="margin-bottom:14px;text-align:left;">
+        Liste des numéros SIM connus de Reev Boutik. Quand un téléphone retourne un de ces numéros lors de l'identification, le réseau et l'usage sont auto-remplis.
+      </div>
+      <div id="known-numbers-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;text-align:left;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-sm" onclick="addKnownNumber()" style="background:var(--violet);color:#fff;border-color:var(--violet);font-size:12px;flex:1;">+ Ajouter un numéro</button>
+        <button class="btn-sm" onclick="resetKnownNumbers()" style="background:var(--red-soft);color:var(--red);border-color:var(--red-soft);font-size:12px;">↺ Réinitialiser</button>
+      </div>
     </div>
 
     <div id="settings-wave-tab" style="display:none;">
@@ -1142,12 +1154,13 @@ function togglePinVisibility(show){
 }
 
 function switchSettingsTab(tab){
-  ['phones','pins','plans','cash','wave','install'].forEach(t => {
+  ['phones','numbers','pins','plans','cash','wave','install'].forEach(t => {
     document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
     document.getElementById(`settings-${t}-tab`).style.display = t === tab ? 'block' : 'none';
   });
   if(tab === 'install') renderInstallQR();
   if(tab === 'phones')  renderPhonesConfig();
+  if(tab === 'numbers') renderKnownNumbers();
 }
 
 const INSTALL_URL = 'https://reev-boutik.github.io/mobipay/apk/mobipay-bridge.apk';
@@ -1546,8 +1559,8 @@ function phoneConfigRow(p){
       const sel = (s.service === v || (!s.service && v === '')) ? 'selected' : '';
       return `<option value="${v}" ${sel}>${lbl}</option>`;
     }).join('');
-    const identifiedInfo = s.identifiedNumber || s.identifiedProfile
-      ? `<div class="sim-identified">${s.identifiedNumber ? `📞 ${escapeHtml(s.identifiedNumber)}` : ''}${s.identifiedProfile ? ` · <span style="color:var(--orange);">${escapeHtml(s.identifiedProfile)}</span>` : ''}</div>`
+    const identifiedInfo = s.identifiedNumber || s.identifiedProfile || s.identifiedLabel
+      ? `<div class="sim-identified">${s.identifiedNumber ? `📞 ${escapeHtml(s.identifiedNumber)}` : ''}${s.identifiedLabel ? ` · <span style="color:var(--violet);font-weight:700;">${escapeHtml(s.identifiedLabel)}</span>` : (s.identifiedProfile ? ` · <span style="color:var(--orange);">${escapeHtml(s.identifiedProfile)}</span>` : '')}</div>`
       : '';
     return `
       <div class="phone-sim-row">
@@ -1578,6 +1591,127 @@ function phoneConfigRow(p){
       </div>
       ${sims}
     </div>`;
+}
+
+// === Reev Boutik : reconnaissance auto des numéros connus ===
+// Table éditable depuis ⚙️ → 📞 Numéros. Stockée en localStorage.
+// Format: [{number:'0720492395', label:'Orange Money', network:'orange', service:'money'}, ...]
+const KNOWN_NUMBERS_DEFAULTS = [
+  {number:'0720492395', label:'Orange Money',          network:'orange',    service:'money' },
+  {number:'0564462347', label:'Wave',                  network:'wave',      service:'qr'    },
+  {number:'0102931112', label:'Moov Crédit (Cabine)',  network:'moov',      service:'credit'},
+  {number:'0101131789', label:'Moov Money',            network:'moov',      service:'money' },
+  {number:'0716975493', label:'Orange Pay',            network:'orangepay', service:'qr'    },
+  {number:'0747958081', label:'Orange Crédit (Cabine)',network:'orange',    service:'credit'},
+];
+
+function loadKnownNumbers(){
+  try {
+    const raw = localStorage.getItem('mobipay_known_numbers');
+    if(raw){
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr)) return arr;
+    }
+  } catch(e){}
+  return JSON.parse(JSON.stringify(KNOWN_NUMBERS_DEFAULTS));
+}
+function saveKnownNumbers(arr){
+  localStorage.setItem('mobipay_known_numbers', JSON.stringify(arr));
+}
+
+// Reconnaissance par profil opérateur (fallback si numéro pas dans table)
+const PROFILE_TO_USAGE = {
+  'cabine_star':    {network:'moov',   service:'credit'},
+  'moov_retailer':  {network:'moov',   service:'money'},
+  'retailer':       {network:null,     service:'money'},
+};
+
+function recognizeKnown(parsed){
+  // Priorité 1 : numéro dans la table Reev Boutik
+  if(parsed.number){
+    const list = loadKnownNumbers();
+    const hit = list.find(k => k.number === parsed.number);
+    if(hit) return {network:hit.network, service:hit.service, label:hit.label, source:'numéro'};
+  }
+  // Priorité 2 : profil opérateur
+  if(parsed.profile){
+    const key = parsed.profile.toLowerCase().replace(/\s+/g,'_');
+    if(PROFILE_TO_USAGE[key]){
+      return {...PROFILE_TO_USAGE[key], source:'profil', label:parsed.profile};
+    }
+  }
+  return null;
+}
+
+// === UI Numéros connus ===
+function renderKnownNumbers(){
+  const container = document.getElementById('known-numbers-list');
+  if(!container) return;
+  const list = loadKnownNumbers();
+  if(list.length === 0){
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px 0;">Aucun numéro enregistré.</div>';
+    return;
+  }
+  const netOpts = [
+    ['',          '— Réseau —'],
+    ['orange',    'Orange'],
+    ['moov',      'Moov'],
+    ['mtn',       'MTN'],
+    ['wave',      'Wave'],
+    ['orangepay', 'Orange Pay'],
+  ];
+  const usageOpts = [
+    ['',       '— Usage —'],
+    ['money',  'Money'],
+    ['credit', 'Crédit'],
+    ['qr',     'QR'],
+  ];
+  container.innerHTML = list.map((k, i) => {
+    const netSel   = netOpts.map(([v,l]) => `<option value="${v}" ${k.network===v?'selected':''}>${l}</option>`).join('');
+    const usageSel = usageOpts.map(([v,l]) => `<option value="${v}" ${k.service===v?'selected':''}>${l}</option>`).join('');
+    return `
+      <div class="known-row" style="display:flex;gap:6px;align-items:stretch;flex-wrap:wrap;">
+        <input type="text" value="${escapeAttr(k.number)}" placeholder="0708080808"
+          oninput="updateKnownField(${i}, 'number', this.value)"
+          style="flex:1;min-width:110px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text);outline:none;" />
+        <input type="text" value="${escapeAttr(k.label)}" placeholder="Libellé"
+          oninput="updateKnownField(${i}, 'label', this.value)"
+          style="flex:1.5;min-width:130px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;" />
+        <select onchange="updateKnownField(${i}, 'network', this.value)"
+          style="flex:1;min-width:100px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:9px 8px;font-size:13px;color:var(--text);outline:none;cursor:pointer;">${netSel}</select>
+        <select onchange="updateKnownField(${i}, 'service', this.value)"
+          style="flex:.8;min-width:90px;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:9px 8px;font-size:13px;color:var(--text);outline:none;cursor:pointer;">${usageSel}</select>
+        <button onclick="removeKnownNumber(${i})" title="Supprimer"
+          style="background:var(--red-soft);border:1.5px solid var(--red-soft);border-radius:8px;padding:0 12px;color:var(--red);cursor:pointer;font-size:14px;">✕</button>
+      </div>`;
+  }).join('');
+}
+
+function updateKnownField(idx, field, value){
+  const list = loadKnownNumbers();
+  if(list[idx]){
+    list[idx][field] = value;
+    saveKnownNumbers(list);
+  }
+}
+function addKnownNumber(){
+  const list = loadKnownNumbers();
+  list.push({number:'', label:'', network:'', service:''});
+  saveKnownNumbers(list);
+  renderKnownNumbers();
+}
+function removeKnownNumber(idx){
+  const list = loadKnownNumbers();
+  if(idx < 0 || idx >= list.length) return;
+  if(!confirm(`Supprimer "${list[idx].label || list[idx].number}" ?`)) return;
+  list.splice(idx, 1);
+  saveKnownNumbers(list);
+  renderKnownNumbers();
+}
+function resetKnownNumbers(){
+  if(!confirm('Réinitialiser la liste avec les 6 numéros par défaut de Reev Boutik ?')) return;
+  saveKnownNumbers(JSON.parse(JSON.stringify(KNOWN_NUMBERS_DEFAULTS)));
+  renderKnownNumbers();
 }
 
 // USSD codes pour identification (varient par opérateur CI)
@@ -1707,18 +1841,25 @@ async function identifySimNumber(phoneId, simIdx, silent=false){
 
     // Parse + persist
     const parsed = parseIdentifyResponse(success.response);
+    const matched = recognizeKnown(parsed);  // table Reev Boutik
     const fleet2 = loadFleet();
     const p2 = fleet2.find(x => x.id === phoneId);
     if(p2 && p2.sims && p2.sims[simIdx]){
       p2.sims[simIdx].identifiedNumber  = parsed.number  || null;
       p2.sims[simIdx].identifiedProfile = parsed.profile || null;
-      // Auto-assigner opérateur si pas déjà fait ET pas une SIM QR
-      if(parsed.detectedOp && !QR_NETWORKS.includes(p2.sims[simIdx].network) && !p2.sims[simIdx].network){
-        p2.sims[simIdx].network = parsed.detectedOp;
-      }
-      // Auto-suggérer service si non assigné
-      if(!p2.sims[simIdx].service && parsed.suggested){
-        p2.sims[simIdx].service = parsed.suggested;
+      if(matched){
+        // Numéro reconnu dans la table Reev Boutik : on force le bon couple
+        p2.sims[simIdx].network = matched.network || p2.sims[simIdx].network;
+        p2.sims[simIdx].service = matched.service || p2.sims[simIdx].service;
+        p2.sims[simIdx].identifiedLabel = matched.label || null;
+      } else {
+        // Fallback : auto-assignation par préfixe / profil
+        if(parsed.detectedOp && !QR_NETWORKS.includes(p2.sims[simIdx].network) && !p2.sims[simIdx].network){
+          p2.sims[simIdx].network = parsed.detectedOp;
+        }
+        if(!p2.sims[simIdx].service && parsed.suggested){
+          p2.sims[simIdx].service = parsed.suggested;
+        }
       }
       saveFleet(fleet2);
       renderPhonesConfig();
@@ -1728,15 +1869,19 @@ async function identifySimNumber(phoneId, simIdx, silent=false){
     if(!silent){
       addLog('success', `✅ ${p.name} SIM ${simIdx+1} (${success.label}) :`);
       if(parsed.number){
-        const opLabel = parsed.detectedOp ? NET_INFO[parsed.detectedOp].label : success.label;
-        const detected = parsed.detectedOp ? ` · <strong style="color:var(--orange);">${opLabel}</strong>` : '';
-        const profile  = parsed.profile ? ` · Profil : <strong style="color:var(--orange);">${parsed.profile}</strong>` : '';
-        const suggest  = parsed.suggested ? ` → suggéré : <em>${labelSvc(parsed.suggested)}</em>` : '';
-        addLog('info', `📞 <strong style="color:var(--green);">${parsed.number}</strong>${detected}${profile}${suggest}`);
+        if(matched){
+          addLog('info', `📞 <strong style="color:var(--green);">${parsed.number}</strong> → <strong style="color:var(--violet);">${escapeHtml(matched.label)}</strong> <span style="color:var(--muted);">(reconnu par ${matched.source})</span>`);
+        } else {
+          const opLabel = parsed.detectedOp ? NET_INFO[parsed.detectedOp].label : success.label;
+          const detected = parsed.detectedOp ? ` · <strong style="color:var(--orange);">${opLabel}</strong>` : '';
+          const profile  = parsed.profile ? ` · Profil : <strong style="color:var(--orange);">${parsed.profile}</strong>` : '';
+          const suggest  = parsed.suggested ? ` → suggéré : <em>${labelSvc(parsed.suggested)}</em>` : '';
+          addLog('info', `📞 <strong style="color:var(--green);">${parsed.number}</strong>${detected}${profile}${suggest}`);
+        }
       }
       addLog('info', `<pre style="white-space:pre-wrap;margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green);">${escapeHtml(success.response||'(vide)')}</pre>`);
     }
-    return {success, parsed};
+    return {success, parsed, matched};
   } finally {
     releaseUssdLock(p.ip);
   }
