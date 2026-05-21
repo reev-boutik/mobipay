@@ -4,39 +4,40 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MobiPay — USSD Mobile Money</title>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="qrcode.min.js"></script>
 <style>
   :root {
-    /* Violet pastel doux */
-    --bg:#f5f3ff;
+    /* Maquette B "Doux pastel" — bleu lavande + violet */
+    --bg:#eef2ff;
     --surface:#ffffff;
     --card:#ffffff;
-    --border:#e9e5fa;
-    --border-strong:#d4ccf0;
+    --border:#e0e7ff;
+    --border-strong:#c7d2fe;
     --orange:#ff6b00;
     --orange-soft:#fff4e6;
     --orange-glow:rgba(255,107,0,0.06);
-    --blue:#8b7ed8;
-    --blue-soft:#f0ebff;
-    --green:#22c55e;
-    --green-soft:#dcfce7;
-    --red:#ef4444;
-    --red-soft:#fee2e2;
     --violet:#7c3aed;
-    --violet-soft:#ede9fe;
-    --text:#2d1b69;
-    --text-soft:#6b5da3;
-    --muted:#a8a0c0;
-    --shadow-sm:0 1px 2px rgba(124,58,237,.05);
-    --shadow-md:0 4px 14px rgba(124,58,237,.08);
-    --shadow-lg:0 10px 30px rgba(124,58,237,.12);
+    --violet-soft:#eef2ff;
+    --indigo:#6366f1;
+    --blue:#3b82f6;
+    --blue-soft:#dbeafe;
+    --green:#16a34a;
+    --green-soft:#dcfce7;
+    --red:#dc2626;
+    --red-soft:#fee2e2;
+    --text:#1e1b4b;
+    --text-soft:#6366f1;
+    --muted:#9ca3af;
+    --shadow-sm:0 1px 2px rgba(99,102,241,.06);
+    --shadow-md:0 4px 16px rgba(99,102,241,.10);
+    --shadow-lg:0 10px 30px rgba(99,102,241,.15);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{
     background:var(--bg);
     color:var(--text);
-    font-family:'Manrope',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:16px;
     min-height:100vh;
     display:flex;flex-direction:column;align-items:center;
@@ -45,15 +46,15 @@
   header{width:100%;max-width:620px;padding:32px 0 18px;display:flex;align-items:center;gap:14px;}
   .logo-icon{
     width:52px;height:52px;
-    background:var(--orange);
+    background:var(--violet);
     border-radius:14px;
     display:flex;align-items:center;justify-content:center;
-    font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;color:#fff;
+    font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;color:#fff;
     box-shadow:var(--shadow-md);
     flex-shrink:0;
   }
-  .logo-text{font-size:28px;font-weight:800;letter-spacing:-0.5px;color:var(--text);}
-  .logo-text span{color:var(--orange);}
+  .logo-text{font-size:28px;font-weight:800;letter-spacing:-0.5px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;}
+  .logo-text span{color:var(--violet);}
 
   .strip{
     width:100%;max-width:620px;
@@ -88,13 +89,13 @@
     border:1.5px solid var(--border);
     border-radius:10px;
     padding:9px 16px;
-    font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;
+    font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
     color:var(--text);cursor:pointer;transition:all .15s;white-space:nowrap;
   }
   .btn-sm:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-soft);}
   .btn-sm:disabled{opacity:.5;cursor:not-allowed;}
   .sim-sel{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
-    padding:10px 14px;font-family:'Manrope',sans-serif;font-size:14px;color:var(--text);outline:none;cursor:pointer;}
+    padding:10px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--text);outline:none;cursor:pointer;}
 
   .card{
     width:100%;max-width:620px;
@@ -132,20 +133,19 @@
 
   .services{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0 16px;}
   .svc-btn{
-    border:1.5px solid var(--border);
-    border-radius:12px;
+    border:2px solid var(--border);
+    border-radius:14px;
     background:var(--surface);
-    padding:12px 8px;
+    padding:14px 8px;
     cursor:pointer;text-align:center;
-    font-family:'Manrope',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:15px;font-weight:700;
     color:var(--text-soft);
     transition:all .15s;
-    box-shadow:var(--shadow-sm);
   }
   .svc-btn .si{font-size:24px;display:block;margin-bottom:3px;}
-  .svc-btn:hover:not(:disabled){border-color:var(--orange);color:var(--orange);background:var(--orange-soft);box-shadow:var(--shadow-md);}
-  .svc-btn.active{border-color:var(--orange);background:var(--orange-soft);color:var(--orange);}
+  .svc-btn:hover:not(:disabled){border-color:var(--violet);color:var(--violet);background:var(--violet-soft);}
+  .svc-btn.active{border-color:var(--violet);background:var(--violet-soft);color:var(--violet);}
   .svc-btn:disabled{opacity:.35;cursor:not-allowed;}
 
   .field{margin-bottom:14px;}
@@ -156,7 +156,7 @@
     border:1.5px solid var(--border) !important;
     border-radius:10px !important;
     padding:11px 16px !important;
-    font-family:'Manrope',sans-serif !important;
+    font-family:'Plus Jakarta Sans',sans-serif !important;
     font-size:17px !important;
     font-weight:600 !important;
     color:var(--text) !important;
@@ -167,7 +167,7 @@
     font-feature-settings:"tnum";
   }
   .field select{cursor:pointer;font-size:16px !important;}
-  .field input:focus, .field select:focus{border-color:var(--orange) !important;box-shadow:0 0 0 3px rgba(255,107,0,.1);}
+  .field input:focus, .field select:focus{border-color:var(--violet) !important;box-shadow:0 0 0 3px rgba(124,58,237,.10);}
   .field input::placeholder{color:#9ca3af !important;font-size:16px !important;font-weight:400 !important;letter-spacing:.3px;}
 
   /* PRIMARY INPUTS — phone & amount must be very visible for cashier */
@@ -180,7 +180,7 @@
     border-radius:12px !important;
     color:var(--text) !important;
     outline:none !important;
-    font-family:'Manrope',sans-serif !important;
+    font-family:'Plus Jakarta Sans',sans-serif !important;
     font-size:30px !important;
     font-weight:700 !important;
     padding:14px 18px !important;
@@ -210,41 +210,41 @@
   input#phone:focus,
   input#amount:focus,
   input#plan-amount:focus {
-    border-color:var(--orange) !important;
-    box-shadow:0 0 0 3px rgba(255,107,0,.1) !important;
+    border-color:var(--violet) !important;
+    box-shadow:0 0 0 3px rgba(124,58,237,.10) !important;
   }
 
   .ussd-preview{
-    background:var(--bg);
-    border:1.5px solid var(--border);
-    border-radius:10px;
+    background:var(--violet-soft);
+    border:2px dashed var(--border-strong);
+    border-radius:14px;
     padding:14px 18px;
     margin-bottom:20px;
     font-family:'JetBrains Mono',monospace;
     font-size:17px;font-weight:700;
-    color:var(--green);
+    color:var(--violet);
     display:flex;align-items:center;gap:12px;min-height:52px;letter-spacing:.5px;
   }
   .ussd-label{color:var(--text-soft);font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
-  .cursor{display:inline-block;width:2px;height:17px;background:var(--green);
+  .cursor{display:inline-block;width:2px;height:17px;background:var(--violet);
     animation:blink 1s step-end infinite;margin-left:2px;vertical-align:middle;}
   @keyframes blink{50%{opacity:0;}}
 
   .btn-launch{
     width:100%;
-    background:var(--orange);
+    background:var(--violet);
     border:none;
-    border-radius:12px;
-    padding:14px;
-    font-family:'Manrope',sans-serif;
+    border-radius:14px;
+    padding:16px;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:17px;font-weight:800;color:#fff;
     cursor:pointer;
-    box-shadow:0 6px 18px rgba(255,107,0,.25);
+    box-shadow:0 6px 18px rgba(124,58,237,.30);
     transition:all .15s;
     display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:.3px;
   }
   .btn-launch span:first-child{font-size:20px;}
-  .btn-launch:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,107,0,.35);}
+  .btn-launch:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,58,237,.40);}
   .btn-launch:disabled{opacity:.45;cursor:not-allowed;}
   .spin{animation:spin .8s linear infinite;display:inline-block;}
   @keyframes spin{to{transform:rotate(360deg);}}
@@ -300,28 +300,28 @@
   .modal-device{font-size:14px;color:var(--blue);margin-bottom:22px;font-weight:600;}
   .modal-actions{display:flex;gap:10px;flex-wrap:wrap;}
   .btn-confirm{flex:1;padding:14px;border-radius:12px;background:var(--green);color:#fff;
-    border:none;cursor:pointer;font-family:'Manrope',sans-serif;font-weight:800;font-size:15px;
+    border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;
     transition:all .15s;min-width:110px;box-shadow:0 4px 12px rgba(22,163,74,.25);}
   .btn-confirm:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(22,163,74,.35);}
   .btn-cancel{flex:1;padding:14px;border-radius:12px;background:transparent;color:var(--text-soft);
-    border:1.5px solid var(--border);cursor:pointer;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;
+    border:1.5px solid var(--border);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;
     transition:all .15s;min-width:110px;}
   .btn-cancel:hover{border-color:var(--text);color:var(--text);background:var(--bg);}
 
   .settings-tab{flex:1;padding:12px 14px;background:transparent;color:var(--text-soft);border:none;
     border-bottom:2px solid transparent;cursor:pointer;font-size:14px;font-weight:700;transition:all .15s;white-space:nowrap;
-    font-family:'Manrope',sans-serif;}
+    font-family:'Plus Jakarta Sans',sans-serif;}
   .settings-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
   .settings-tab:hover:not(.active){color:var(--text);background:var(--orange-soft);}
   .op-mini-btn{padding:8px 16px;background:var(--surface);color:var(--text-soft);border:1.5px solid var(--border);
-    border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;transition:all .15s;font-family:'Manrope',sans-serif;}
+    border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif;}
   .op-mini-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);}
   .op-mini-btn:hover:not(.active){background:var(--orange-soft);color:var(--orange);border-color:var(--orange);}
 
   .plans-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;text-align:left;}
   .plan-row{display:flex;gap:6px;align-items:stretch;}
   .plan-row input{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
-    padding:10px 12px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--text);outline:none;}
+    padding:10px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;}
   .plan-row input:focus{border-color:var(--orange);box-shadow:0 0 0 2px rgba(255,107,0,.1);}
   .plan-row input.plan-label{flex:1.4;}
   .plan-row input.plan-amount{flex:.7;font-family:'JetBrains Mono',monospace;}
@@ -334,14 +334,14 @@
     border:1.5px solid var(--border);box-shadow:var(--shadow-md);}
   .wave-qr-container canvas, .wave-qr-container img{display:block;max-width:100%;height:auto;}
   .wave-amount-display{font-size:36px;font-weight:800;color:var(--orange);margin:16px 0 6px;
-    font-family:'Manrope',sans-serif;letter-spacing:.5px;font-feature-settings:"tnum";}
+    font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.5px;font-feature-settings:"tnum";}
   .wave-instructions{font-size:15px;color:var(--text-soft);line-height:1.6;margin-bottom:20px;}
 
   /* PHONE CONFIG (settings → Téléphones) */
   .phone-config{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:14px;}
   .phone-config-head{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
   .phone-config-head input.phone-name{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
-    padding:9px 12px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;}
+    padding:9px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;}
   .phone-config-head input.phone-name:focus{border-color:var(--orange);box-shadow:0 0 0 2px rgba(255,107,0,.1);}
   .phone-config-head input.phone-ip{flex:1.1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
     padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--blue);outline:none;}
@@ -355,7 +355,7 @@
   .phone-sim-row{display:flex;gap:8px;align-items:center;margin-top:6px;font-size:13px;}
   .phone-sim-row .sim-tag{min-width:54px;font-weight:700;color:var(--orange);font-family:'JetBrains Mono',monospace;}
   .phone-sim-row select{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
-    padding:8px 10px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;}
+    padding:8px 10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;cursor:pointer;}
   .phone-sim-row select:focus{border-color:var(--orange);}
   .phone-sim-row .sim-identify-btn{background:var(--blue-soft);border:1.5px solid var(--blue-soft);border-radius:8px;
     padding:0 12px;color:var(--blue);cursor:pointer;font-size:14px;height:36px;transition:all .15s;}
@@ -433,9 +433,9 @@
     <label>CODE USSD (auto, éditable pour test)</label>
     <div style="display:flex;gap:8px;align-items:stretch;">
       <input type="text" id="ussd-input" autocomplete="off" oninput="onUssdManualEdit()"
-        style="flex:1;font-family:'JetBrains Mono',monospace;font-size:18px !important;color:var(--green) !important;background:#0d1117 !important;letter-spacing:1px;font-weight:700 !important;" placeholder="—" />
-      <button class="btn-sm" onclick="regenUSSD()" title="Régénérer le code automatique" style="padding:0 14px;background:var(--surface);">↻</button>
-      <button class="btn-sm" onclick="testRawUSSD()" title="Envoyer ce code USSD directement au téléphone sélectionné" style="padding:0 14px;background:#1f3a5f;">🧪 Tester</button>
+        style="flex:1;font-family:'JetBrains Mono',monospace;font-size:18px !important;color:var(--violet) !important;background:var(--violet-soft) !important;border:2px dashed var(--border-strong) !important;letter-spacing:1px;font-weight:700 !important;" placeholder="—" />
+      <button class="btn-sm" onclick="regenUSSD()" title="Régénérer le code automatique" style="padding:0 14px;background:#fff;color:var(--text-soft);">↻</button>
+      <button class="btn-sm" onclick="testRawUSSD()" title="Envoyer ce code USSD directement au téléphone sélectionné" style="padding:0 14px;background:var(--violet);color:#fff;border-color:var(--violet);">🧪 Tester</button>
     </div>
     <div style="font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:.3px;line-height:1.4;">
       Édité manuellement ? Le bouton ↻ recalcule depuis les champs. 🧪 Tester envoie ce code tel quel.
@@ -506,11 +506,11 @@
       <div class="modal-sub" style="margin-bottom:14px;text-align:left;">
         Configurer les téléphones de la caisse et assigner chaque SIM à un rôle.
       </div>
-      <div style="background:#1a2a3f;border-left:3px solid var(--blue);padding:10px 14px;border-radius:6px;margin-bottom:14px;text-align:left;font-size:13px;line-height:1.6;color:var(--text);">
-        💡 <strong>Identifier un numéro de SIM</strong> : cliquez le bouton 📞 à droite de chaque SIM pour lancer <code style="color:var(--blue);">*99#</code> (Orange/MTN) ou <code style="color:var(--blue);">*106#</code> (Moov). La réponse opérateur affichera le numéro.
+      <div style="background:var(--blue-soft);border-left:3px solid var(--blue);padding:12px 14px;border-radius:8px;margin-bottom:14px;text-align:left;font-size:13px;line-height:1.6;color:var(--text);">
+        💡 <strong>Identifier un numéro de SIM</strong> : cliquez le bouton 📞 à droite de chaque SIM pour lancer <code style="color:var(--violet);background:#fff;padding:2px 6px;border-radius:4px;">*99#</code> (Orange/MTN) ou <code style="color:var(--violet);background:#fff;padding:2px 6px;border-radius:4px;">*106#</code> (Moov). La réponse opérateur affichera le numéro.
       </div>
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-        <button class="btn-sm" onclick="scanFleet()" id="scan-fleet-btn" style="background:#1f3a5f;">🔍 Scanner réseau</button>
+        <button class="btn-sm" onclick="scanFleet()" id="scan-fleet-btn" style="background:var(--violet);color:#fff;border-color:var(--violet);">🔍 Scanner réseau</button>
         <button class="btn-sm" onclick="addManualPhone()">+ Ajouter manuellement</button>
       </div>
       <div id="scan-status" style="font-size:12px;color:var(--muted);min-height:16px;margin-bottom:10px;"></div>
@@ -552,9 +552,9 @@
         <div style="width:36px;"></div>
       </div>
       <div class="plans-list" id="plans-list"></div>
-      <button class="btn-sm" onclick="addPlanRow()" style="background:#1f3a5f;font-size:11px;width:100%;">+ Ajouter un forfait</button>
+      <button class="btn-sm" onclick="addPlanRow()" style="background:var(--violet);color:#fff;border-color:var(--violet);font-size:12px;width:100%;">+ Ajouter un forfait</button>
       <div style="margin-top:14px;text-align:left;">
-        <button class="btn-sm" onclick="resetPlansForCurrentOp()" style="background:#3a2a2a;font-size:11px;">↺ Réinitialiser</button>
+        <button class="btn-sm" onclick="resetPlansForCurrentOp()" style="background:var(--red-soft);color:var(--red);border-color:var(--red-soft);font-size:12px;">↺ Réinitialiser</button>
       </div>
     </div>
 
@@ -575,7 +575,7 @@
         <label>📥 CODE USSD DÉPÔT</label>
         <input type="text" id="cash-tpl-depot" autocomplete="off" />
       </div>
-      <button class="btn-sm" onclick="resetCashTplForCurrentOp()" style="background:#3a2a2a;font-size:11px;">↺ Réinitialiser</button>
+      <button class="btn-sm" onclick="resetCashTplForCurrentOp()" style="background:var(--red-soft);color:var(--red);border-color:var(--red-soft);font-size:12px;">↺ Réinitialiser</button>
     </div>
 
     <div id="settings-install-tab" style="display:none;">
@@ -584,12 +584,16 @@
         scanner ce QR avec l'<strong>Appareil photo</strong> du téléphone à équiper.
       </div>
 
-      <div style="background:#fff;padding:18px;border-radius:14px;display:inline-block;margin:0 auto 14px;">
+      <div style="background:#fff;padding:18px;border-radius:14px;display:inline-block;margin:0 auto 14px;border:1.5px solid var(--border);">
         <canvas id="install-qr-canvas"></canvas>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);word-break:break-all;margin-bottom:18px;padding:10px;background:var(--surface);border-radius:8px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-soft);word-break:break-all;margin-bottom:14px;padding:10px;background:var(--bg);border-radius:8px;">
         <span id="install-url">https://reev-boutik.github.io/mobipay/apk/mobipay-bridge.apk</span>
+      </div>
+
+      <div style="font-size:12px;color:var(--text-soft);margin-bottom:18px;text-align:center;font-weight:600;">
+        <span style="color:var(--violet);">●</span> Version <strong style="color:var(--violet);">1.0.1</strong> · build <strong>2026-05-21 01:06 UTC</strong>
       </div>
 
       <div style="text-align:left;font-size:13px;line-height:1.7;color:var(--text);background:var(--surface);padding:14px 16px;border-radius:10px;margin-bottom:14px;">
@@ -1391,7 +1395,11 @@ async function rescanFleet(){
   await Promise.all(fleet.map(async p => {
     const r = await probe(p.ip, 1500);
     p.online = !!r;
-    if(r) p.device = `${r.manufacturer} ${r.device}`;
+    if(r){
+      p.device = `${r.manufacturer} ${r.device}`;
+      p.version = r.version || null;
+      p.buildTime = r.buildTime || null;
+    }
   }));
   saveFleet(fleet);
   renderFleetCard();
@@ -1438,6 +1446,8 @@ async function scanFleet(){
     if(existing){
       existing.online = true;
       existing.device = `${f.data.manufacturer} ${f.data.device}`;
+      existing.version = f.data.version || null;
+      existing.buildTime = f.data.buildTime || null;
     } else {
       fleet.push({
         id: newPhoneId(),
@@ -1445,6 +1455,8 @@ async function scanFleet(){
         ip: f.ip,
         online: true,
         device: `${f.data.manufacturer} ${f.data.device}`,
+        version: f.data.version || null,
+        buildTime: f.data.buildTime || null,
         sims: [
           {network:null, service:null},
           {network:null, service:null},
@@ -1478,12 +1490,18 @@ function renderFleetCard(){
     return;
   }
   const onlineCount = fleet.filter(p => p.online).length;
+  const oldVersionCount = fleet.filter(p => p.online && !p.version).length;
   const allOnline = onlineCount === fleet.length;
   const color = allOnline ? 'var(--green)' : (onlineCount > 0 ? 'var(--orange)' : 'var(--red)');
-  summary.innerHTML = `<span style="color:${color};">${onlineCount}/${fleet.length} en ligne</span>`;
+  let summaryHtml = `<span style="color:${color};">${onlineCount}/${fleet.length} en ligne</span>`;
+  if(oldVersionCount > 0){
+    summaryHtml += ` <span style="color:var(--red);font-weight:700;margin-left:6px;">⚠ ${oldVersionCount} APK obsolète</span>`;
+  }
+  summary.innerHTML = summaryHtml;
   dots.innerHTML = fleet.map(p => {
     const cls = p.online ? 'online' : 'offline';
-    const tip = `${p.name}${p.online ? ' • en ligne' : ' • hors-ligne'}`;
+    const ver = p.version ? ` v${p.version}` : ' (APK ancien)';
+    const tip = `${p.name}${p.online ? ' • en ligne' : ' • hors-ligne'}${ver}`;
     return `<span class="fleet-mini-dot ${cls}" title="${escapeAttr(tip)}"></span>`;
   }).join('');
 }
@@ -1550,8 +1568,12 @@ function phoneConfigRow(p){
           oninput="updatePhoneField('${p.id}', 'ip', this.value)" />
         <button class="del-btn" onclick="removePhone('${p.id}')" title="Supprimer">✕</button>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <div style="font-size:11px;color:var(--text-soft);">${escapeHtml(p.device || 'Modèle inconnu')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;">
+        <div style="font-size:11px;color:var(--text-soft);">
+          ${escapeHtml(p.device || 'Modèle inconnu')}
+          ${p.version ? `<span style="margin-left:8px;padding:2px 8px;background:var(--violet-soft);color:var(--violet);border-radius:5px;font-weight:700;">v${escapeHtml(p.version)}</span>` : '<span style="margin-left:8px;padding:2px 8px;background:var(--red-soft);color:var(--red);border-radius:5px;font-weight:700;">v ancien</span>'}
+          ${p.buildTime ? `<span style="margin-left:4px;color:var(--muted);font-family:'JetBrains Mono',monospace;">${escapeHtml(p.buildTime)}</span>` : ''}
+        </div>
         <button class="btn-sm" onclick="identifyAllSims('${p.id}')" style="font-size:11px;padding:6px 12px;background:var(--violet-soft);border-color:var(--violet-soft);color:var(--violet);" title="Lancer *106# puis *99# sur SIM 1 et SIM 2 successivement">🔄 Tout identifier</button>
       </div>
       ${sims}
